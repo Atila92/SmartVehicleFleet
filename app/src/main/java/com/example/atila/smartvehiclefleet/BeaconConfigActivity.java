@@ -8,6 +8,7 @@ import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.estimote.coresdk.recognition.utils.DeviceId;
 
@@ -15,10 +16,14 @@ import java.nio.charset.Charset;
 
 public class BeaconConfigActivity extends AppCompatActivity {
 
+    public static final String configBeacon = "";
+    private TextView displayBeaconIdentifierTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_beacon_config);
+        displayBeaconIdentifierTextView = (TextView) findViewById(R.id.displayBeaconIdentifierTextView);
     }
 
     @Override
@@ -32,6 +37,7 @@ public class BeaconConfigActivity extends AppCompatActivity {
                     NdefMessage msg = (NdefMessage) rawMsgs[i];
                     DeviceId beaconId = findBeaconId(msg);
                     if (beaconId != null) {
+                        displayBeaconIdentifierTextView.setText(beaconId.toString());
                         Log.d("Green beacon:", beaconId.toString());
                     }
                 }
