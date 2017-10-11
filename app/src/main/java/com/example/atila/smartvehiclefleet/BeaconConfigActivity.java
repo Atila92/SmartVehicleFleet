@@ -7,23 +7,70 @@ import android.nfc.NfcAdapter;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.TextKeyListener;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.estimote.coresdk.recognition.utils.DeviceId;
+import com.example.atila.smartvehiclefleet.dbhelper.DataProvider;
 
 import java.nio.charset.Charset;
 
 public class BeaconConfigActivity extends AppCompatActivity {
 
-    public static final String configBeacon = "";
+    private String configBeacon = "";
     private TextView displayBeaconIdentifierTextView;
+    private EditText editText1;
+    private final String toastMessageSuccess = "Setup done!";
+    private final String toastMessageInput = "Please enter a valid vehicle identifier!";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_beacon_config);
         displayBeaconIdentifierTextView = (TextView) findViewById(R.id.displayBeaconIdentifierTextView);
+        editText1 = (EditText) findViewById(R.id.editText1);
+        final DataProvider dataProvider = new DataProvider(this);
+        //provides a hint in the input field
+        editText1.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    // Always use a TextKeyListener when clearing a TextView to prevent android
+                    // warnings in the log
+                    editText1.setHint("Enter vehicle identifier here..");
+
+                }
+            }
+        });
+
+        //Listener for enter click
+        editText1.setOnKeyListener(new View.OnKeyListener() {
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // If the event is a key-down event on the "enter" button
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    if(editText1.getText().toString().length()>4) {
+                        //It inputs data as a new field if it doesn't already exist
+                        if (!dataProvider.selectVehicleIdentifier(configBeacon).moveToFirst()) {
+                            dataProvider.insertMapping(configBeacon, editText1.getText().toString());
+                            Toast.makeText(BeaconConfigActivity.this, toastMessageSuccess, Toast.LENGTH_SHORT).show();
+                        } else {
+                            dataProvider.updateMapping(configBeacon, editText1.getText().toString());
+                        }
+                        return true;
+                    }else{
+                        Toast.makeText(BeaconConfigActivity.this, toastMessageInput, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -37,8 +84,8 @@ public class BeaconConfigActivity extends AppCompatActivity {
                     NdefMessage msg = (NdefMessage) rawMsgs[i];
                     DeviceId beaconId = findBeaconId(msg);
                     if (beaconId != null) {
-                        displayBeaconIdentifierTextView.setText(beaconId.toString());
-                        Log.d("Green beacon:", beaconId.toString());
+                        displayBeaconIdentifierTextView.setText("Configuring beacon with id: "+beaconId.toString());
+                        configBeacon = beaconId.toString();
                     }
                 }
             }
