@@ -30,7 +30,7 @@ public class DataProvider {
     public long updateMapping(String beaconId, String vehicleId){
         ContentValues values = new ContentValues();
         values.put(DbHelper.VEHICLE_IDENTIFIER, vehicleId);
-        return database.update(DbHelper.TABLE_MAPPING,values,DbHelper.BEACON_IDENTIFIER+"="+beaconId,null);
+        return database.update(DbHelper.TABLE_MAPPING,values,DbHelper.BEACON_IDENTIFIER+"='"+beaconId+"'",null);
     }
     //Select all mappings from sqlite db
     public Cursor selectAllMappings(){
@@ -44,7 +44,7 @@ public class DataProvider {
     //Select a specific vehicle identifier from sqlite db
     public Cursor selectVehicleIdentifier(String beaconId){
         String[] cols = new String[] {DbHelper.VEHICLE_IDENTIFIER};
-        Cursor cursor = database.query(true, DbHelper.TABLE_MAPPING, cols, DbHelper.BEACON_IDENTIFIER +"="+beaconId, null, null, null, null, null);
+        Cursor cursor = database.query(true, DbHelper.TABLE_MAPPING, cols, DbHelper.BEACON_IDENTIFIER +"='"+beaconId+"'", null, null, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();
         }

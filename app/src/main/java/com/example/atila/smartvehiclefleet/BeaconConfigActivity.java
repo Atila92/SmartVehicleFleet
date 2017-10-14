@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,13 +28,14 @@ public class BeaconConfigActivity extends AppCompatActivity {
     private EditText editText1;
     private final String toastMessageSuccess = "Setup done!";
     private final String toastMessageInput = "Please enter a valid vehicle identifier!";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_beacon_config);
         displayBeaconIdentifierTextView = (TextView) findViewById(R.id.displayBeaconIdentifierTextView);
         editText1 = (EditText) findViewById(R.id.editText1);
+        final Handler handler = new Handler();
+
         final DataProvider dataProvider = new DataProvider(this);
         //provides a hint in the input field
         editText1.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -60,13 +62,29 @@ public class BeaconConfigActivity extends AppCompatActivity {
                         if (!dataProvider.selectVehicleIdentifier(configBeacon).moveToFirst()) {
                             dataProvider.insertMapping(configBeacon, editText1.getText().toString());
                             Toast.makeText(BeaconConfigActivity.this, toastMessageSuccess, Toast.LENGTH_SHORT).show();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Intent intent = new Intent(BeaconConfigActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            }, 1500);
                         } else {
                             dataProvider.updateMapping(configBeacon, editText1.getText().toString());
+                            Toast.makeText(BeaconConfigActivity.this, toastMessageSuccess, Toast.LENGTH_SHORT).show();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Intent intent = new Intent(BeaconConfigActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            }, 1500);
                         }
-                        return true;
+
                     }else{
                         Toast.makeText(BeaconConfigActivity.this, toastMessageInput, Toast.LENGTH_SHORT).show();
                     }
+                    return true;
                 }
                 return false;
             }
