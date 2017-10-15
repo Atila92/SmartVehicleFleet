@@ -51,4 +51,14 @@ public class DataProvider {
         return cursor;
     }
 
+    //Select a specific beacon identifier from sqlite db
+    public Cursor selectBeaconIdentifier(String vehicleId){
+        String[] cols = new String[] {DbHelper.BEACON_IDENTIFIER};
+        Cursor cursor = database.query(true, DbHelper.TABLE_MAPPING, cols, DbHelper.VEHICLE_IDENTIFIER +"='"+vehicleId+"'", null, null, null, null, null);
+        if (cursor != null){
+            cursor.moveToFirst();
+        }
+        return cursor;
+    }
+
 }
