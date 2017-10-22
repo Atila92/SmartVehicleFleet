@@ -4,13 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.atila.smartvehiclefleet.BeaconConfigActivity"
-    android:theme="@style/AppTheme.NoActionBar">
+    android:theme="@style/AppTheme.NoActionBar"
+    tools:context="com.example.atila.smartvehiclefleet.BeaconConfigActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="344dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="551dp"
+        android:layout_centerHorizontal="true"
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp">
 
@@ -18,13 +18,14 @@
             android:id="@+id/textView4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
+            android:layout_marginTop="9dp"
             android:layout_weight="1"
             android:text="Configuration Mode"
             android:textAlignment="center"
+            android:textColor="#000000"
             android:textSize="24sp"
-            android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             tools:layout_editor_absoluteY="23dp" />
@@ -33,8 +34,8 @@
             android:id="@+id/displayBeaconIdentifierTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/editText1"
             android:layout_alignParentStart="true"
+            android:layout_below="@+id/imageView3"
             android:layout_weight="1"
             android:text="TextView"
             android:textAlignment="center"
@@ -49,13 +50,39 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/textView4"
+            android:layout_below="@+id/displayBeaconIdentifierTextView"
+            android:layout_marginTop="35dp"
             android:layout_weight="1"
             android:ems="10"
+            android:hint="Enter vehicle identifier here"
             android:inputType="textPersonName"
+            android:textColor="#000000"
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="188dp" />
 
-    </LinearLayout>
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_marginTop="22dp"
+            android:background="@color/colorPrimaryDark"
+            android:elevation="10dp"
+            android:text="Save"
+            android:textColor="#ffff"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_below="@+id/editText1"
+            android:layout_alignParentEnd="true" />
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textView4"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            app:srcCompat="@drawable/configbeacon" />
+    </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

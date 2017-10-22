@@ -23,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity
 
     private TextView textViewSearchHeader;
     private EditText editTextSearch;
+    private Button searchButton;
     private BeaconManager beaconManager;
     private boolean notificationAlreadyShown = false;
     private DataProvider dataProvider;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity
         //For test of db
         textViewSearchHeader = (TextView) findViewById(R.id.textViewSearchHeader);
         editTextSearch = (EditText) findViewById(R.id.editTextSearch);
+        searchButton = (Button) findViewById(R.id.searchButton);
         beaconManager = new BeaconManager(getApplicationContext());
         dataProvider = new DataProvider(this);
 
@@ -73,19 +76,6 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        textViewSearchHeader.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    // Always use a TextKeyListener when clearing a TextView to prevent android
-                    // warnings in the log
-                    textViewSearchHeader.setHint("Enter vehicle identifier to start searching");
-
-                }
-            }
-        });
 
         //Listener for enter click
         editTextSearch.setOnKeyListener(new View.OnKeyListener() {
@@ -102,19 +92,14 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        /*
-        Cursor cursor = dataProvider.selectAllMappings();
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            textViewSearchHeader.setText(cursor.getString(cursor.getColumnIndex(DbHelper.MAPPING_ID))+":"+cursor.getString(cursor.getColumnIndex(DbHelper.BEACON_IDENTIFIER))
-                    +":"+cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
-
-            Log.d("Click---------", cursor.getString(cursor.getColumnIndex(DbHelper.MAPPING_ID))+":"+cursor.getString(cursor.getColumnIndex(DbHelper.BEACON_IDENTIFIER))
-                    +":"+cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
-            cursor.moveToNext();
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                notificationAlreadyShown = false;
+                beaconManager.disconnect();
+                findVehicle();
             }
-            cursor.close();
-        */
+        });
+
     }
 
     @Override
@@ -174,6 +159,7 @@ public class MainActivity extends AppCompatActivity
                 .setContentIntent(pendingIntent)
                 .build();
         notification.defaults |= Notification.DEFAULT_SOUND;
+        notification.defaults |= Notification.DEFAULT_VIBRATE;
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, notification);
@@ -214,7 +200,7 @@ public class MainActivity extends AppCompatActivity
                     for (EstimoteLocation beacon : beacons) {
                         if (beacon.id.toString().equals(beaconIdentifier) && RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
                             progress.dismiss();
-                            showNotification("Found vehicle!", "Vehicle with identifier "+userInput+" was found.");
+                            showNotification("Vehicle Found!", "Vehicle with identifier "+userInput+" was found.");
                         }
 
                     }

@@ -12,6 +12,7 @@ import android.text.method.TextKeyListener;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +27,7 @@ public class BeaconConfigActivity extends AppCompatActivity {
     private String configBeacon = "";
     private TextView displayBeaconIdentifierTextView;
     private EditText editText1;
+    private Button saveButton;
     private final String toastMessageSuccess = "Setup done!";
     private final String toastMessageInput = "Please enter a valid vehicle identifier!";
     @Override
@@ -34,22 +36,10 @@ public class BeaconConfigActivity extends AppCompatActivity {
         setContentView(R.layout.activity_beacon_config);
         displayBeaconIdentifierTextView = (TextView) findViewById(R.id.displayBeaconIdentifierTextView);
         editText1 = (EditText) findViewById(R.id.editText1);
+        saveButton = (Button) findViewById(R.id.saveButton);
         final Handler handler = new Handler();
 
         final DataProvider dataProvider = new DataProvider(this);
-        //provides a hint in the input field
-        editText1.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    // Always use a TextKeyListener when clearing a TextView to prevent android
-                    // warnings in the log
-                    editText1.setHint("Enter vehicle identifier here..");
-
-                }
-            }
-        });
 
         //Listener for enter click
         editText1.setOnKeyListener(new View.OnKeyListener() {
@@ -89,6 +79,39 @@ public class BeaconConfigActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        //Listener for save button
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(editText1.getText().toString().length()>4) {
+                    //It inputs data as a new field if it doesn't already exist
+                    if (!dataProvider.selectVehicleIdentifier(configBeacon).moveToFirst()) {
+                        dataProvider.insertMapping(configBeacon, editText1.getText().toString());
+                        Toast.makeText(BeaconConfigActivity.this, toastMessageSuccess, Toast.LENGTH_SHORT).show();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent intent = new Intent(BeaconConfigActivity.this, MainActivity.class);
+                                startActivity(intent);
+                            }
+                        }, 1500);
+                    } else {
+                        dataProvider.updateMapping(configBeacon, editText1.getText().toString());
+                        Toast.makeText(BeaconConfigActivity.this, toastMessageSuccess, Toast.LENGTH_SHORT).show();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent intent = new Intent(BeaconConfigActivity.this, MainActivity.class);
+                                startActivity(intent);
+                            }
+                        }, 1500);
+                    }
+
+                }else{
+                    Toast.makeText(BeaconConfigActivity.this, toastMessageInput, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -102,7 +125,7 @@ public class BeaconConfigActivity extends AppCompatActivity {
                     NdefMessage msg = (NdefMessage) rawMsgs[i];
                     DeviceId beaconId = findBeaconId(msg);
                     if (beaconId != null) {
-                        displayBeaconIdentifierTextView.setText("Configuring beacon with id: "+beaconId.toString());
+                        displayBeaconIdentifierTextView.setText(beaconId.toString());
                         configBeacon = beaconId.toString();
                     }
                 }
@@ -122,4 +145,5 @@ public class BeaconConfigActivity extends AppCompatActivity {
         }
         return null;
     }
+
 }
