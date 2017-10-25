@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity
     private DataProvider dataProvider;
     private String beaconIdentifier;
     private String userInput;
+    public static HashMap<Integer,Proximity> proximityValues = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +78,13 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        //populating the proximity values
+        proximityValues.put(0,Proximity.IMMEDIATE);
+        proximityValues.put(1,Proximity.NEAR);
+        proximityValues.put(2,Proximity.FAR);
+        proximityValues.put(3,Proximity.UNKNOWN);
+
+        //initializes the sharedprefs
 
         //Listener for enter click
         editTextSearch.setOnKeyListener(new View.OnKeyListener() {
@@ -175,6 +184,7 @@ public class MainActivity extends AppCompatActivity
         });
         //Loading bar
         final ProgressDialog progress = new ProgressDialog(this);
+        final SharedPreferences prefs = getSharedPreferences(SettingsActivity.MY_PREFS_NAME, MODE_PRIVATE);
         progress.setTitle("Loading");
         progress.setMessage("Wait while starting the scanner..");
         progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
@@ -196,15 +206,42 @@ public class MainActivity extends AppCompatActivity
                 public void onLocationsFound(List<EstimoteLocation> beacons) {
                     progress.setTitle("Searching");
                     progress.setMessage("Searching for vehicle ");
-                    //String beaconId = "[7c8259db97a28a6609b5da060954ef11]";
+                    Integer radius = prefs.getInt("radius",0);
+                    //proximityValues.get(prefs.getInt("radius",0))
+                    if(radius==0) {
+                        for (EstimoteLocation beacon : beacons) {
+                            if (beacon.id.toString().equals(beaconIdentifier) && RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
+                                progress.dismiss();
+                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
+                            }
 
-                    for (EstimoteLocation beacon : beacons) {
-                        if (beacon.id.toString().equals(beaconIdentifier) && RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
-                            progress.dismiss();
-                            showNotification("Vehicle Found!", "Vehicle with identifier "+userInput+" was found.");
                         }
+                    }else if(radius==1) {
+                        for (EstimoteLocation beacon : beacons) {
+                            if (beacon.id.toString().equals(beaconIdentifier) && (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR)) {
+                                progress.dismiss();
+                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
+                            }
 
+                        }
+                    }else if(radius==2) {
+                        for (EstimoteLocation beacon : beacons) {
+                            if (beacon.id.toString().equals(beaconIdentifier) && (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR)) {
+                                progress.dismiss();
+                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
+                            }
+
+                        }
+                    }else if(radius==3) {
+                        for (EstimoteLocation beacon : beacons) {
+                            if (beacon.id.toString().equals(beaconIdentifier) && (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR ||RegionUtils.computeProximity(beacon) == Proximity.UNKNOWN)) {
+                                progress.dismiss();
+                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
+                            }
+
+                        }
                     }
+
                 }
             });
             beaconManager.disconnect();
