@@ -40,8 +40,8 @@ public class SettingsActivity extends AppCompatActivity implements NavigationVie
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         //populating the map with values
-        settingsValues.put(0,"Up to a few centimeters");
-        settingsValues.put(1,"Up to a few meters");
+        settingsValues.put(0,"Vehicles within few centimeters");
+        settingsValues.put(1,"Vehicles within few meters");
         settingsValues.put(2,"More than a few meters");
         settingsValues.put(3,"Unknown");
 
@@ -118,6 +118,9 @@ public class SettingsActivity extends AppCompatActivity implements NavigationVie
 
         } else if (id == R.id.nav_scan) {
             Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_scan_all) {
+            Intent intent = new Intent(SettingsActivity.this, ScanActivity.class);
             startActivity(intent);
         }
 
