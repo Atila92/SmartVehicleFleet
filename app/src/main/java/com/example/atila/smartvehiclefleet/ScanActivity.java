@@ -1,11 +1,17 @@
 package com.example.atila.smartvehiclefleet;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -18,7 +24,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
 import com.estimote.coresdk.observation.region.RegionUtils;
 import com.estimote.coresdk.observation.utils.Proximity;
@@ -44,6 +49,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
     private ListView listView;
     private DataProvider dataProvider;
     private TextView scanHeader;
+    private BroadcastReceiver broadcastReceiver;
+    private Double latitude;
+    private Double longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +75,11 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         beaconManager = new BeaconManager(getApplicationContext());
         dataProvider = new DataProvider(this);
 
+        //Checks for location permissions
+        if(!runtimePermissions()){
+            runtimePermissions();
+        }
+
         String[] vehiclesNearby = new String[]{};
         vehiclesNearbyList = new ArrayList<String>();
         vehiclesNearbyList.addAll(Arrays.asList(vehiclesNearby));
@@ -88,6 +101,8 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         searchAllButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 beaconManager.disconnect();
+                Intent i = new Intent(getApplicationContext(),LocationService.class);
+                startService(i);
                 findVehicles();
             }
         });
@@ -98,12 +113,27 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
     protected void onResume() {
         super.onResume();
         SystemRequirementsChecker.checkWithDefaultDialogs(this);
+        if(broadcastReceiver == null){
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    latitude = intent.getExtras().getDouble("latitude");
+                    longitude = intent.getExtras().getDouble("longitude");
+                }
+            };
+        }
+        registerReceiver(broadcastReceiver,new IntentFilter("location_update"));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         beaconManager.disconnect();
+        if(broadcastReceiver != null){
+            unregisterReceiver(broadcastReceiver);
+        }
+        Intent i = new Intent(getApplicationContext(),LocationService.class);
+        stopService(i);
     }
 
     @Override
@@ -156,7 +186,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                 progress.setTitle("Searching");
                 progress.setMessage("Searching for vehicle ");
                 Integer radius = prefs.getInt("radius",0);
-                if(radius==0) {
+                if(radius==0 && latitude != null) {
                     for (EstimoteLocation beacon : beacons) {
                         if (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
                             progress.dismiss();
@@ -165,6 +195,12 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                             cursor.moveToFirst();
                             while (!cursor.isAfterLast()) {
                                 if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    //inserts new location if not exists, else updates
+                                    if (!dataProvider.selectLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER))).moveToFirst()){
+                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString());
+                                    }else{
+                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString());
+                                    }
                                     listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
                                 }
                                 cursor.moveToNext();
@@ -185,7 +221,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                             listAdapter.notifyDataSetChanged();
                         }
                     }
-                }else if(radius==1) {
+                }else if(radius==1 && latitude != null) {
                     for (EstimoteLocation beacon : beacons) {
                         if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR)) {
                             progress.dismiss();
@@ -194,6 +230,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                             cursor.moveToFirst();
                             while (!cursor.isAfterLast()) {
                                 if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    //add here
                                     listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
                                 }
                                 cursor.moveToNext();
@@ -280,6 +317,13 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+    }
 
+    private Boolean runtimePermissions() {
+        if(Build.VERSION.SDK_INT >=23 && ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},100);
+            return true;
+        }
+        return false;
     }
 }
