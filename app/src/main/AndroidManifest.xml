@@ -48,7 +48,11 @@
 
         <service android:name=".LocationService" />
 
-        <activity android:name=".OverviewActivity"></activity>
+        <activity
+            android:name=".OverviewActivity"
+            android:label=" "
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

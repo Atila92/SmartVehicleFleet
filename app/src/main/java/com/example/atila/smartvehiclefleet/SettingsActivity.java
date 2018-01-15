@@ -115,7 +115,8 @@ public class SettingsActivity extends AppCompatActivity implements NavigationVie
         if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
-
+            Intent intent = new Intent(SettingsActivity.this, OverviewActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_scan) {
             Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
             startActivity(intent);

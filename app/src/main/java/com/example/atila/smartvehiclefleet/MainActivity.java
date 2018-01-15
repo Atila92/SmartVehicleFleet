@@ -144,7 +144,8 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-
+            Intent intent = new Intent(MainActivity.this, OverviewActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_scan) {
 
         } else if (id == R.id.nav_scan_all) {

@@ -155,7 +155,8 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
             Intent intent = new Intent(ScanActivity.this, SettingsActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-
+            Intent intent = new Intent(ScanActivity.this, OverviewActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_scan) {
             Intent intent = new Intent(ScanActivity.this, MainActivity.class);
             startActivity(intent);
@@ -183,10 +184,10 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         beaconManager.setLocationListener(new BeaconManager.LocationListener() {
             @Override
             public void onLocationsFound(List<EstimoteLocation> beacons) {
-                progress.setTitle("Searching");
-                progress.setMessage("Searching for vehicle ");
                 Integer radius = prefs.getInt("radius",0);
                 if(radius==0 && latitude != null) {
+                    progress.setTitle("Searching");
+                    progress.setMessage("Searching for vehicle ");
                     for (EstimoteLocation beacon : beacons) {
                         if (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
                             progress.dismiss();
