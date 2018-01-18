@@ -52,6 +52,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
     private BroadcastReceiver broadcastReceiver;
     private Double latitude;
     private Double longitude;
+    private Boolean scanning= false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,10 +101,21 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         //listener for search all button
         searchAllButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                beaconManager.disconnect();
-                Intent i = new Intent(getApplicationContext(),LocationService.class);
-                startService(i);
-                findVehicles();
+
+                if(!scanning){
+                    Intent i = new Intent(getApplicationContext(),LocationService.class);
+                    startService(i);
+                    findVehicles();
+                    scanning = true;
+                    searchAllButton.setText("Stop Scan");
+                }else{
+                    beaconManager.disconnect();
+                    Intent i = new Intent(getApplicationContext(),LocationService.class);
+                    stopService(i);
+                    scanning = false;
+                    searchAllButton.setText("Scan");
+                }
+
             }
         });
 
@@ -223,6 +235,8 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                         }
                     }
                 }else if(radius==1 && latitude != null) {
+                    progress.setTitle("Searching");
+                    progress.setMessage("Searching for vehicle ");
                     for (EstimoteLocation beacon : beacons) {
                         if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR)) {
                             progress.dismiss();
@@ -231,7 +245,11 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                             cursor.moveToFirst();
                             while (!cursor.isAfterLast()) {
                                 if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
-                                    //add here
+                                    if (!dataProvider.selectLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER))).moveToFirst()){
+                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString());
+                                    }else{
+                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString());
+                                    }
                                     listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
                                 }
                                 cursor.moveToNext();

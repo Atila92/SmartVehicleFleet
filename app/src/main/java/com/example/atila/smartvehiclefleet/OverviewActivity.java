@@ -11,6 +11,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -54,13 +56,24 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         Cursor cursor = dataProvider.selectAllLocations();
         if (cursor != null){
             while (!cursor.isAfterLast()) {
-                listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER))+"-"
-                        +" lat: "+cursor.getString(cursor.getColumnIndex(DbHelper.LATITUDE))+" lon: "+cursor.getString(cursor.getColumnIndex(DbHelper.LONGITUDE)));
+                listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER)));
                 cursor.moveToNext();
             }
             cursor.close();
         }
         listAdapter.notifyDataSetChanged();
+
+        //Listener for listview
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Get the selected item text from ListView
+                String selectedItem = (String) parent.getItemAtPosition(position);
+                MapsActivity.vehicleId = selectedItem;
+                Intent intent = new Intent(OverviewActivity.this, MapsActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
