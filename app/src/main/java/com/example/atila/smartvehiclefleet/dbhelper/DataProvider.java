@@ -62,23 +62,25 @@ public class DataProvider {
     }
 
     //Inserts a vehicle location into db
-    public long insertLocation(String vehicleId, String latitude, String longitude){
+    public long insertLocation(String vehicleId, String latitude, String longitude, Float accuracy){
         ContentValues values = new ContentValues();
         values.put(DbHelper.REF_VEHICLE_IDENTIFIER, vehicleId);
         values.put(DbHelper.LATITUDE, latitude);
         values.put(DbHelper.LONGITUDE, longitude);
+        values.put(DbHelper.ACCURACY, accuracy);
         return database.insert(DbHelper.TABLE_LOCATION, null, values);
     }
     //Updates an existing vehicle location
-    public long updateLocation(String vehicleId, String latitude, String longitude){
+    public long updateLocation(String vehicleId, String latitude, String longitude, Float accuracy){
         ContentValues values = new ContentValues();
         values.put(DbHelper.LATITUDE, latitude);
         values.put(DbHelper.LONGITUDE, longitude);
+        values.put(DbHelper.ACCURACY, accuracy);
         return database.update(DbHelper.TABLE_LOCATION,values,DbHelper.REF_VEHICLE_IDENTIFIER+"='"+vehicleId+"'",null);
     }
     //selects vehicle location
     public Cursor selectLocation(String vehicleId){
-        String[] cols = new String[] {DbHelper.LATITUDE,DbHelper.LONGITUDE};
+        String[] cols = new String[] {DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY};
         Cursor cursor = database.query(true, DbHelper.TABLE_LOCATION, cols, DbHelper.REF_VEHICLE_IDENTIFIER +"='"+vehicleId+"'", null, null, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();
@@ -88,7 +90,7 @@ public class DataProvider {
 
     //selects vehicle location
     public Cursor selectAllLocations(){
-        String[] cols = new String[] {DbHelper.REF_VEHICLE_IDENTIFIER,DbHelper.LATITUDE,DbHelper.LONGITUDE};
+        String[] cols = new String[] {DbHelper.REF_VEHICLE_IDENTIFIER,DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY};
         Cursor cursor = database.query(true, DbHelper.TABLE_LOCATION, cols, null, null, null, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();

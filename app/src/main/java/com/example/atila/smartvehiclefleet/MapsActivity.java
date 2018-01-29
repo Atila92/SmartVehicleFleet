@@ -42,7 +42,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (cursor != null){
             while (!cursor.isAfterLast()) {
-                tempId = cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER));
+                tempId = cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER))+" ("+cursor.getFloat(cursor.getColumnIndex(DbHelper.ACCURACY))+")";
                 vehicleIds.add(tempId);
                 loc = new LatLng(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LATITUDE))),Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LONGITUDE))));
                 points.add(loc);

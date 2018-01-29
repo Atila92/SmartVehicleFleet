@@ -16,7 +16,7 @@ public class DbHelper extends SQLiteOpenHelper {
     //DB name
     private static final String DB_NAME = "smartvehiclefleet_db";
     //DB version
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     //Tables names
     public static final String TABLE_MAPPING = "tblbeaconvehiclemapping";
     public static final String TABLE_LOCATION = "tbllocation";
@@ -26,11 +26,12 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String BEACON_IDENTIFIER = "beaconidentifier";
     public static final String VEHICLE_IDENTIFIER = "vehicleidentifier";
 
-    //tblmlocation column names
+    //tbllocation column names
     public static final String LOCATION_ID = "locationid";
     public static final String REF_VEHICLE_IDENTIFIER = "refvehicleidentifier";
     public static final String LATITUDE = "latitude";
     public static final String LONGITUDE = "longitude";
+    public static final String ACCURACY = "accuracy";
 
     //create tblbeaconvehiclemapping statement
     private static final String CREATE_TABLE_BEACONVEHICLEMAPPING = "CREATE TABLE "
@@ -40,7 +41,7 @@ public class DbHelper extends SQLiteOpenHelper {
     //create tbllocation statement
     private static final String CREATE_TABLE_LOCATION = "CREATE TABLE "
             + TABLE_LOCATION + "(" + LOCATION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," + REF_VEHICLE_IDENTIFIER + " TEXT,"
-            + LATITUDE + " TEXT," + LONGITUDE + " TEXT)";
+            + LATITUDE + " TEXT," + LONGITUDE + " TEXT," + ACCURACY + " REAL)";
 
     public DbHelper(Context context){
         super(context, DB_NAME, null, DB_VERSION);

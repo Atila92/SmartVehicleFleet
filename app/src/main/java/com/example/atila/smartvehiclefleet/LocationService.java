@@ -35,7 +35,8 @@ public class LocationService extends Service{
                 Intent i = new Intent("location_update");
                 i.putExtra("latitude",location.getLatitude());
                 i.putExtra("longitude",location.getLongitude());
-                i.putExtra("test",location.getLatitude());
+                i.putExtra("accuracy",location.getAccuracy());
+
                 sendBroadcast(i);
             }
 
