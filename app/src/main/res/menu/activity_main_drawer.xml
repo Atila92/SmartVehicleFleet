@@ -8,21 +8,20 @@
             android:title="Scan All" />
         <item
             android:id="@+id/nav_scan"
-            android:icon="@drawable/scan"
-            android:title="Scan" />
+            android:icon="?android:attr/actionModeWebSearchDrawable"
+            android:title="Search" />
         <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Settings" />
+            android:id="@+id/nav_share"
+            android:icon="?android:attr/actionModeFindDrawable"
+            android:title="Overview" />
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Preferences">
         <menu>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
-
+                android:id="@+id/nav_manage"
+                android:icon="@android:drawable/ic_menu_preferences"
+                android:title="Settings" />
         </menu>
     </item>
 

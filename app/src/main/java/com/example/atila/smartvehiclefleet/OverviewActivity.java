@@ -41,7 +41,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
     private ArrayList<String> vehicleLocationsList;
     private DataProvider dataProvider;
     private Button syncButton;
-    private static final String POSTLOCATIONSURL = "http://fleetscanner.store/fleetscanner/insertlocation.php";
+    private SyncService sync;
 
 
     @Override
@@ -90,10 +90,12 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
                 startActivity(intent);
             }
         });
+        //Creates a new synService to get ready for remote db sync
+        sync = new SyncService(getApplicationContext(),OverviewActivity.this);
         //sync to remote database listener
         syncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                postData();
+                sync.postData();
             }
         });
     }
@@ -121,62 +123,4 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         return true;
     }
 
-    /**
-     * Compose JSON out of SQLite records
-     * @return
-     */
-    public String composeJSONfromSQLite(){
-        ArrayList<HashMap<String, String>> locationList;
-        locationList = new ArrayList<HashMap<String, String>>();
-        Cursor cursor2 = dataProvider.selectAllLocations();
-        if (cursor2 != null){
-            while (!cursor2.isAfterLast()) {
-                HashMap<String, String> map = new HashMap<String, String>();
-                map.put("Locationid", cursor2.getString(cursor2.getColumnIndex(DbHelper.LOCATION_ID)));
-                map.put("Refvehicleidentifier", cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER)));
-                map.put("Latitude", cursor2.getString(cursor2.getColumnIndex(DbHelper.LATITUDE)));
-                map.put("Longitude", cursor2.getString(cursor2.getColumnIndex(DbHelper.LONGITUDE)));
-                map.put("Accuracy", cursor2.getString(cursor2.getColumnIndex(DbHelper.ACCURACY)));
-                //map.put("Timestamp", cursor.getString(1));
-                locationList.add(map);
-                cursor2.moveToNext();
-            }
-            cursor2.close();
-        }else{
-            Toast.makeText(getApplicationContext(),"cursor is null",Toast.LENGTH_LONG).show();
-        }
-
-        Gson gson = new GsonBuilder().create();
-        //Use GSON to serialize Array List to JSON
-        return gson.toJson(locationList);
-    }
-
-    public void postData(){
-        AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        Cursor cursor3 = dataProvider.selectAllLocations();
-        if (cursor3 != null){
-            params.put("locationsJSON", composeJSONfromSQLite());
-            client.post(POSTLOCATIONSURL,params ,new AsyncHttpResponseHandler() {
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    Toast.makeText(getApplicationContext(),"Sync completed",Toast.LENGTH_LONG).show();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    if(statusCode == 404){
-                        Toast.makeText(getApplicationContext(), "Requested resource not found", Toast.LENGTH_LONG).show();
-                    }else if(statusCode == 500){
-                        Toast.makeText(getApplicationContext(), "Something went wrong at server end", Toast.LENGTH_LONG).show();
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Unexpected Error occcured! [Most common Error: Device might not be connected to Internet]", Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
-        }
-
-
-    }
 }

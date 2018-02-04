@@ -90,7 +90,8 @@ public class DataProvider {
 
     //selects vehicle location
     public Cursor selectAllLocations(){
-        String[] cols = new String[] {DbHelper.LOCATION_ID, DbHelper.REF_VEHICLE_IDENTIFIER,DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY};
+        String[] cols = new String[] {DbHelper.LOCATION_ID,
+                DbHelper.REF_VEHICLE_IDENTIFIER,DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY};
         Cursor cursor = database.query(true, DbHelper.TABLE_LOCATION, cols, null, null, null, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();

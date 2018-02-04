@@ -54,6 +54,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
     private Double longitude;
     private Float accuracy;
     private Boolean scanning= false;
+    private SyncService sync;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +77,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         scanHeader = (TextView) findViewById(R.id.scanHeader);
         beaconManager = new BeaconManager(getApplicationContext());
         dataProvider = new DataProvider(this);
+        sync = new SyncService(getApplicationContext(),ScanActivity.this);
 
         //Checks for location permissions
         if(!runtimePermissions()){
@@ -113,6 +115,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                     beaconManager.disconnect();
                     Intent i = new Intent(getApplicationContext(),LocationService.class);
                     stopService(i);
+                    sync.postData();
                     scanning = false;
                     searchAllButton.setText("Scan");
                 }
