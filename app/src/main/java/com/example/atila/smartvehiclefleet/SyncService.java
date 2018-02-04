@@ -25,6 +25,7 @@ import cz.msebera.android.httpclient.Header;
 public class SyncService {
 
     private static final String POSTLOCATIONSURL = "http://fleetscanner.store/fleetscanner/insertlocation.php";
+    private static final String DELETELOCATIONSURL = "http://fleetscanner.store/fleetscanner/deletelocation.php";
     private DataProvider dataProvider;
     private Context context;
     private Context activityContext;
@@ -42,7 +43,7 @@ public class SyncService {
         ArrayList<HashMap<String, String>> locationList;
         locationList = new ArrayList<HashMap<String, String>>();
         Cursor cursor2 = dataProvider.selectAllLocations();
-        if (cursor2 != null){
+        if (cursor2.getCount() >0){
             while (!cursor2.isAfterLast()) {
                 HashMap<String, String> map = new HashMap<String, String>();
                 map.put("Locationid", cursor2.getString(cursor2.getColumnIndex(DbHelper.LOCATION_ID)));
@@ -74,7 +75,7 @@ public class SyncService {
         RequestParams params = new RequestParams();
         dataProvider = new DataProvider(context);
         Cursor cursor3 = dataProvider.selectAllLocations();
-        if (cursor3 != null){
+        if (cursor3.getCount() >0){
             params.put("locationsJSON", composeJSONfromSQLite());
             client.post(POSTLOCATIONSURL,params ,new AsyncHttpResponseHandler() {
 
@@ -96,8 +97,56 @@ public class SyncService {
                     }
                 }
             });
+            cursor3.close();
         }
 
 
     }
+
+    //for deleting from remote db
+    public String composeDeleteJSONfromSQLite(String vehicleId){
+        ArrayList<HashMap<String, String>> deleteList;
+        deleteList = new ArrayList<HashMap<String, String>>();
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("Refvehicleidentifier", vehicleId);
+        deleteList.add(map);
+
+        Gson gson = new GsonBuilder().create();
+        //Use GSON to serialize Array List to JSON
+        return gson.toJson(deleteList);
+    }
+
+    public void deleteData(final String vehicleId){
+        final ProgressDialog progress = new ProgressDialog(activityContext);
+        progress.setTitle("Deleting");
+        progress.setMessage("Wait while deleting vehicle data..");
+        progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
+        progress.show();
+        AsyncHttpClient client = new AsyncHttpClient();
+        RequestParams params = new RequestParams();
+        params.put("deleteJSON", composeDeleteJSONfromSQLite(vehicleId));
+        client.post(DELETELOCATIONSURL,params ,new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                progress.dismiss();
+                Toast.makeText(context,"Vehicle "+vehicleId+" deleted!",Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                progress.dismiss();
+                if(statusCode == 404){
+                    Toast.makeText(context, "Requested resource not found", Toast.LENGTH_LONG).show();
+                }else if(statusCode == 500){
+                    Toast.makeText(context, "Something went wrong at server end", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(context, "Unexpected Error occcured! [Most common Error: Device might not be connected to Internet]", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+    }
+
+
 }

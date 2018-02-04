@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
@@ -51,11 +52,13 @@ public class MainActivity extends AppCompatActivity
     private EditText editTextSearch;
     private Button searchButton;
     private BeaconManager beaconManager;
-    private boolean notificationAlreadyShown = false;
     private DataProvider dataProvider;
+    private TextView searchResult;
+    private Button deleteButton;
     private String beaconIdentifier;
     private String userInput;
-    public static HashMap<Integer,Proximity> proximityValues = new HashMap<>();
+    private SyncService sync;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +70,10 @@ public class MainActivity extends AppCompatActivity
         textViewSearchHeader = (TextView) findViewById(R.id.textViewSearchHeader);
         editTextSearch = (EditText) findViewById(R.id.editTextSearch);
         searchButton = (Button) findViewById(R.id.searchButton);
-        beaconManager = new BeaconManager(getApplicationContext());
+        searchResult = (TextView) findViewById(R.id.searchTextView);
+        deleteButton = (Button) findViewById(R.id.deleteButton);
         dataProvider = new DataProvider(this);
+        sync = new SyncService(getApplicationContext(),MainActivity.this);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -78,13 +83,6 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        //populating the proximity values
-        proximityValues.put(0,Proximity.IMMEDIATE);
-        proximityValues.put(1,Proximity.NEAR);
-        proximityValues.put(2,Proximity.FAR);
-        proximityValues.put(3,Proximity.UNKNOWN);
-
-        //initializes the sharedprefs
 
         //Listener for enter click
         editTextSearch.setOnKeyListener(new View.OnKeyListener() {
@@ -92,8 +90,6 @@ public class MainActivity extends AppCompatActivity
                 // If the event is a key-down event on the "enter" button
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
                         (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    notificationAlreadyShown = false;
-                    beaconManager.disconnect();
                     findVehicle();
                     return true;
                 }
@@ -103,9 +99,16 @@ public class MainActivity extends AppCompatActivity
 
         searchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                notificationAlreadyShown = false;
-                beaconManager.disconnect();
                 findVehicle();
+            }
+        });
+
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                dataProvider.deleteVehicleMapping(userInput);
+                deleteButton.setVisibility(View.INVISIBLE);
+                searchResult.setText(" ");
+                sync.deleteData(userInput);
             }
         });
 
@@ -120,7 +123,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        beaconManager.disconnect();
     }
 
     @Override
@@ -158,7 +160,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public void showNotification(String title, String message) {
+/*    public void showNotification(String title, String message) {
         if (notificationAlreadyShown) { return; }
 
         Intent notifyIntent = new Intent(this, MainActivity.class);
@@ -178,82 +180,24 @@ public class MainActivity extends AppCompatActivity
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, notification);
         notificationAlreadyShown = true;
-    }
+    }*/
 
     public void findVehicle(){
-        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
-            @Override public void onServiceReady() {
-                beaconManager.startLocationDiscovery();
-            }
-        });
-        //Loading bar
-        final ProgressDialog progress = new ProgressDialog(this);
-        final SharedPreferences prefs = getSharedPreferences(SettingsActivity.MY_PREFS_NAME, MODE_PRIVATE);
-        progress.setTitle("Loading");
-        progress.setMessage("Wait while starting the scanner..");
-        progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
-        progress.show();
-        //Finds the beaconId corresponding to the vehicle id entered
         userInput = editTextSearch.getText().toString();
-        Log.d("Userinput --->",userInput);
-        if(dataProvider.selectBeaconIdentifier(userInput).moveToFirst()){
-            Cursor cursor = dataProvider.selectBeaconIdentifier(userInput);
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                beaconIdentifier = cursor.getString(cursor.getColumnIndex(DbHelper.BEACON_IDENTIFIER));
-                cursor.moveToNext();
-            }
-            cursor.close();
-            Log.d("beaconid --->",beaconIdentifier);
-            beaconManager.setLocationListener(new BeaconManager.LocationListener() {
-                @Override
-                public void onLocationsFound(List<EstimoteLocation> beacons) {
-                    progress.setTitle("Searching");
-                    progress.setMessage("Searching for vehicle ");
-                    Integer radius = prefs.getInt("radius",0);
-                    //proximityValues.get(prefs.getInt("radius",0))
-                    if(radius==0) {
-                        for (EstimoteLocation beacon : beacons) {
-                            if (beacon.id.toString().equals(beaconIdentifier) && RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
-                                progress.dismiss();
-                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
-                            }
+        Cursor cursor = dataProvider.selectBeaconIdentifier(userInput);
+        if(cursor.getCount()>0){
+            searchResult.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+            searchResult.setTextColor(Color.GREEN);
+            searchResult.setText("Found vehicle: "+userInput);
+            deleteButton.setVisibility(View.VISIBLE);
 
-                        }
-                    }else if(radius==1) {
-                        for (EstimoteLocation beacon : beacons) {
-                            if (beacon.id.toString().equals(beaconIdentifier) && (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR)) {
-                                progress.dismiss();
-                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
-                            }
 
-                        }
-                    }else if(radius==2) {
-                        for (EstimoteLocation beacon : beacons) {
-                            if (beacon.id.toString().equals(beaconIdentifier) && (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR)) {
-                                progress.dismiss();
-                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
-                            }
-
-                        }
-                    }else if(radius==3) {
-                        for (EstimoteLocation beacon : beacons) {
-                            if (beacon.id.toString().equals(beaconIdentifier) && (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR ||RegionUtils.computeProximity(beacon) == Proximity.UNKNOWN)) {
-                                progress.dismiss();
-                                showNotification("Vehicle Found!", "Vehicle with identifier " + userInput + " was found.");
-                            }
-
-                        }
-                    }
-
-                }
-            });
-            beaconManager.disconnect();
-        }else{
-            Toast.makeText(MainActivity.this, "Please enter a valid vehicle identifier", Toast.LENGTH_SHORT).show();
-            progress.dismiss();
+        } else{
+            searchResult.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            searchResult.setTextColor(Color.GRAY);
+            searchResult.setText("No results");
+            deleteButton.setVisibility(View.INVISIBLE);
         }
-
 
     }
 }

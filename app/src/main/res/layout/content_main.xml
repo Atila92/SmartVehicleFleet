@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
-            android:text="Scan for vehicle"
+            android:text="Search for vehicle"
             android:textAlignment="center"
             android:textColor="#000000"
             android:textSize="24sp"
@@ -36,41 +36,52 @@
             android:id="@+id/editTextSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/imageView2"
-            android:layout_marginTop="12dp"
             android:ems="10"
             android:hint="Enter a vehicle id"
             android:inputType="textPersonName"
             tools:layout_editor_absoluteX="72dp"
-            tools:layout_editor_absoluteY="193dp" />
+            tools:layout_editor_absoluteY="193dp"
+            android:layout_above="@+id/searchButton"
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="44dp" />
 
         <Button
             android:id="@+id/searchButton"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:background="@color/colorPrimaryDark"
             android:elevation="10dp"
             android:text="Search"
             android:textColor="#ffff"
             android:textStyle="bold"
             android:textSize="18sp"
-            android:layout_below="@+id/editTextSearch"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="12dp" />
-
-        <ImageView
-            android:id="@+id/imageView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textViewSearchHeader"
+            android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:adjustViewBounds="true"
-            android:maxHeight="150dp"
-            android:maxWidth="150dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/scan" />
+            android:layout_marginBottom="111dp" />
+
+        <TextView
+            android:id="@+id/searchTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/textViewSearchHeader"
+            android:layout_marginTop="53dp"
+            android:layout_toStartOf="@+id/deleteButton"
+            android:textAlignment="textStart"
+            android:textColor="@android:color/holo_green_dark"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/searchTextView"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@+id/searchTextView"
+            android:background="@android:drawable/ic_delete"
+            android:visibility="invisible" />
+
     </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

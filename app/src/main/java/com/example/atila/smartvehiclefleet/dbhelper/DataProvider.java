@@ -99,4 +99,10 @@ public class DataProvider {
         return cursor;
     }
 
+    public void deleteVehicleMapping(String vehicleId)
+    {
+        database.delete(DbHelper.TABLE_MAPPING, DbHelper.VEHICLE_IDENTIFIER + "='" + vehicleId+"'", null);
+        database.delete(DbHelper.TABLE_LOCATION, DbHelper.REF_VEHICLE_IDENTIFIER + "='" + vehicleId+"'", null);
+    }
+
 }
