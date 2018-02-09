@@ -47,7 +47,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".LocationService" />
+        <service android:name=".services.LocationService" />
 
         <activity
             android:name=".OverviewActivity"

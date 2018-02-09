@@ -1,4 +1,4 @@
-package com.example.atila.smartvehiclefleet;
+package com.example.atila.smartvehiclefleet.services;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -51,7 +51,7 @@ public class SyncService {
                 map.put("Latitude", cursor2.getString(cursor2.getColumnIndex(DbHelper.LATITUDE)));
                 map.put("Longitude", cursor2.getString(cursor2.getColumnIndex(DbHelper.LONGITUDE)));
                 map.put("Accuracy", cursor2.getString(cursor2.getColumnIndex(DbHelper.ACCURACY)));
-                //map.put("Timestamp", cursor.getString(1));
+                map.put("Timestamp", cursor2.getString(cursor2.getColumnIndex(DbHelper.TIMESTAMP)));
                 locationList.add(map);
                 cursor2.moveToNext();
             }
@@ -118,8 +118,8 @@ public class SyncService {
 
     public void deleteData(final String vehicleId){
         final ProgressDialog progress = new ProgressDialog(activityContext);
-        progress.setTitle("Deleting");
-        progress.setMessage("Wait while deleting vehicle data..");
+        progress.setTitle("Deleting location");
+        progress.setMessage("Wait while resetting vehicle location data..");
         progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
         progress.show();
         AsyncHttpClient client = new AsyncHttpClient();

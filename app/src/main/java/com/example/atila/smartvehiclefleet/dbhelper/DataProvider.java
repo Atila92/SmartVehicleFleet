@@ -62,25 +62,27 @@ public class DataProvider {
     }
 
     //Inserts a vehicle location into db
-    public long insertLocation(String vehicleId, String latitude, String longitude, Float accuracy){
+    public long insertLocation(String vehicleId, String latitude, String longitude, Float accuracy, String timestamp){
         ContentValues values = new ContentValues();
         values.put(DbHelper.REF_VEHICLE_IDENTIFIER, vehicleId);
         values.put(DbHelper.LATITUDE, latitude);
         values.put(DbHelper.LONGITUDE, longitude);
         values.put(DbHelper.ACCURACY, accuracy);
+        values.put(DbHelper.TIMESTAMP, timestamp);
         return database.insert(DbHelper.TABLE_LOCATION, null, values);
     }
     //Updates an existing vehicle location
-    public long updateLocation(String vehicleId, String latitude, String longitude, Float accuracy){
+    public long updateLocation(String vehicleId, String latitude, String longitude, Float accuracy, String timestamp){
         ContentValues values = new ContentValues();
         values.put(DbHelper.LATITUDE, latitude);
         values.put(DbHelper.LONGITUDE, longitude);
         values.put(DbHelper.ACCURACY, accuracy);
+        values.put(DbHelper.TIMESTAMP, timestamp);
         return database.update(DbHelper.TABLE_LOCATION,values,DbHelper.REF_VEHICLE_IDENTIFIER+"='"+vehicleId+"'",null);
     }
     //selects vehicle location
     public Cursor selectLocation(String vehicleId){
-        String[] cols = new String[] {DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY};
+        String[] cols = new String[] {DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY, DbHelper.TIMESTAMP};
         Cursor cursor = database.query(true, DbHelper.TABLE_LOCATION, cols, DbHelper.REF_VEHICLE_IDENTIFIER +"='"+vehicleId+"'", null, null, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();
@@ -91,17 +93,22 @@ public class DataProvider {
     //selects vehicle location
     public Cursor selectAllLocations(){
         String[] cols = new String[] {DbHelper.LOCATION_ID,
-                DbHelper.REF_VEHICLE_IDENTIFIER,DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY};
+                DbHelper.REF_VEHICLE_IDENTIFIER,DbHelper.LATITUDE,DbHelper.LONGITUDE,DbHelper.ACCURACY, DbHelper.TIMESTAMP};
         Cursor cursor = database.query(true, DbHelper.TABLE_LOCATION, cols, null, null, null, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();
         }
         return cursor;
     }
-
+    //deletes the vehicle from the system
     public void deleteVehicleMapping(String vehicleId)
     {
         database.delete(DbHelper.TABLE_MAPPING, DbHelper.VEHICLE_IDENTIFIER + "='" + vehicleId+"'", null);
+        database.delete(DbHelper.TABLE_LOCATION, DbHelper.REF_VEHICLE_IDENTIFIER + "='" + vehicleId+"'", null);
+    }
+    //resets the vehicle with no location attached
+    public void deleteVehicleLocation(String vehicleId)
+    {
         database.delete(DbHelper.TABLE_LOCATION, DbHelper.REF_VEHICLE_IDENTIFIER + "='" + vehicleId+"'", null);
     }
 

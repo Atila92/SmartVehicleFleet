@@ -10,29 +10,20 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.example.atila.smartvehiclefleet.dbhelper.DataProvider;
 import com.example.atila.smartvehiclefleet.dbhelper.DbHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
-import cz.msebera.android.httpclient.Header;
+import com.example.atila.smartvehiclefleet.services.SyncService;
 
 public class OverviewActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
@@ -70,7 +61,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
                 (this, android.R.layout.simple_list_item_1, vehicleLocationsList);
         listView.setAdapter( listAdapter );
         Cursor cursor = dataProvider.selectAllLocations();
-        if (cursor != null){
+        if (cursor.getCount() >0){
             while (!cursor.isAfterLast()) {
                 listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER)));
                 cursor.moveToNext();

@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.sql.Time;
+
 /**
  * Created by Atila on 10-Oct-17.
  */
@@ -16,7 +18,7 @@ public class DbHelper extends SQLiteOpenHelper {
     //DB name
     private static final String DB_NAME = "smartvehiclefleet_db";
     //DB version
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 4;
     //Tables names
     public static final String TABLE_MAPPING = "tblbeaconvehiclemapping";
     public static final String TABLE_LOCATION = "tbllocation";
@@ -32,6 +34,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String LATITUDE = "latitude";
     public static final String LONGITUDE = "longitude";
     public static final String ACCURACY = "accuracy";
+    public static final String TIMESTAMP = "timestamp";
 
     //create tblbeaconvehiclemapping statement
     private static final String CREATE_TABLE_BEACONVEHICLEMAPPING = "CREATE TABLE "
@@ -41,7 +44,7 @@ public class DbHelper extends SQLiteOpenHelper {
     //create tbllocation statement
     private static final String CREATE_TABLE_LOCATION = "CREATE TABLE "
             + TABLE_LOCATION + "(" + LOCATION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," + REF_VEHICLE_IDENTIFIER + " TEXT,"
-            + LATITUDE + " TEXT," + LONGITUDE + " TEXT," + ACCURACY + " REAL)";
+            + LATITUDE + " TEXT," + LONGITUDE + " TEXT," + ACCURACY + " REAL,"+ TIMESTAMP+" TEXT)";
 
     public DbHelper(Context context){
         super(context, DB_NAME, null, DB_VERSION);

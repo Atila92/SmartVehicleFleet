@@ -1,20 +1,9 @@
 package com.example.atila.smartvehiclefleet;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -23,27 +12,15 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.estimote.coresdk.cloud.api.CloudCallback;
-import com.estimote.coresdk.cloud.api.EstimoteCloud;
-import com.estimote.coresdk.cloud.model.BeaconInfo;
-import com.estimote.coresdk.common.exception.EstimoteCloudException;
 import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
-import com.estimote.coresdk.observation.region.RegionUtils;
-import com.estimote.coresdk.observation.utils.Proximity;
-import com.estimote.coresdk.recognition.packets.EstimoteLocation;
 import com.estimote.coresdk.service.BeaconManager;
 import com.example.atila.smartvehiclefleet.dbhelper.DataProvider;
-import com.example.atila.smartvehiclefleet.dbhelper.DbHelper;
-
-import java.util.HashMap;
-import java.util.List;
+import com.example.atila.smartvehiclefleet.services.SyncService;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -105,7 +82,7 @@ public class MainActivity extends AppCompatActivity
 
         deleteButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                dataProvider.deleteVehicleMapping(userInput);
+                dataProvider.deleteVehicleLocation(userInput);
                 deleteButton.setVisibility(View.INVISIBLE);
                 searchResult.setText(" ");
                 sync.deleteData(userInput);

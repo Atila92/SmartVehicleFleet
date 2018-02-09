@@ -31,9 +31,13 @@ import com.estimote.coresdk.recognition.packets.EstimoteLocation;
 import com.estimote.coresdk.service.BeaconManager;
 import com.example.atila.smartvehiclefleet.dbhelper.DataProvider;
 import com.example.atila.smartvehiclefleet.dbhelper.DbHelper;
+import com.example.atila.smartvehiclefleet.services.LocationService;
+import com.example.atila.smartvehiclefleet.services.SyncService;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -55,6 +59,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
     private Float accuracy;
     private Boolean scanning= false;
     private SyncService sync;
+    private Date date;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +83,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         beaconManager = new BeaconManager(getApplicationContext());
         dataProvider = new DataProvider(this);
         sync = new SyncService(getApplicationContext(),ScanActivity.this);
+        date = new Date();
 
         //Checks for location permissions
         if(!runtimePermissions()){
@@ -115,7 +121,10 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                     beaconManager.disconnect();
                     Intent i = new Intent(getApplicationContext(),LocationService.class);
                     stopService(i);
-                    sync.postData();
+                    Cursor cursor2 = dataProvider.selectAllLocations();
+                    if (cursor2.getCount() >0){
+                        sync.postData();
+                    }
                     scanning = false;
                     searchAllButton.setText("Scan");
                 }
@@ -214,9 +223,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                                 if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
                                     //inserts new location if not exists, else updates
                                     if (!dataProvider.selectLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER))).moveToFirst()){
-                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy);
+                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy, new Timestamp(date.getTime()).toString());
                                     }else{
-                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy);
+                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy, new Timestamp(date.getTime()).toString());
                                     }
                                     listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
                                 }
@@ -249,9 +258,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                             while (!cursor.isAfterLast()) {
                                 if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
                                     if (!dataProvider.selectLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER))).moveToFirst()){
-                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy);
+                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy,new Timestamp(date.getTime()).toString());
                                     }else{
-                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy);
+                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy,new Timestamp(date.getTime()).toString());
                                     }
                                     listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
                                 }
@@ -285,9 +294,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                             while (!cursor.isAfterLast()) {
                                 if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
                                     if (!dataProvider.selectLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER))).moveToFirst()){
-                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy);
+                                        dataProvider.insertLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy,new Timestamp(date.getTime()).toString());
                                     }else{
-                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy);
+                                        dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy,new Timestamp(date.getTime()).toString());
                                     }
                                     listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
                                 }

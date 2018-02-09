@@ -1,4 +1,4 @@
-package com.example.atila.smartvehiclefleet;
+package com.example.atila.smartvehiclefleet.services;
 
 import android.app.Service;
 import android.content.Context;
