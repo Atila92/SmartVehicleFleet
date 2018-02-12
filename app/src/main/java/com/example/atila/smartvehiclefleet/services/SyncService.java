@@ -26,6 +26,7 @@ public class SyncService {
 
     private static final String POSTLOCATIONSURL = "http://fleetscanner.store/fleetscanner/insertlocation.php";
     private static final String DELETELOCATIONSURL = "http://fleetscanner.store/fleetscanner/deletelocation.php";
+    private static final String DELETEALLLOCATIONSURL = "http://fleetscanner.store/fleetscanner/deletealllocations.php";
     private DataProvider dataProvider;
     private Context context;
     private Context activityContext;
@@ -146,6 +147,30 @@ public class SyncService {
             }
         });
 
+    }
+
+    //delete all vehicle locations
+    public void deleteAllLocations(){
+        final ProgressDialog progress = new ProgressDialog(activityContext);
+        progress.setTitle("Deleting locations");
+        progress.setMessage("Wait while resetting vehicle location data..");
+        progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
+        progress.show();
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get(DELETEALLLOCATIONSURL,new AsyncHttpResponseHandler(){
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                progress.dismiss();
+                Toast.makeText(context,"Vehicle locations deleted",Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(context, "Failed", Toast.LENGTH_LONG).show();
+
+            }
+        });
     }
 
 

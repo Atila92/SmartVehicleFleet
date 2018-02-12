@@ -112,4 +112,10 @@ public class DataProvider {
         database.delete(DbHelper.TABLE_LOCATION, DbHelper.REF_VEHICLE_IDENTIFIER + "='" + vehicleId+"'", null);
     }
 
+    //resets the all vehicle locations
+    public void deleteVehicleLocations()
+    {
+        database.delete(DbHelper.TABLE_LOCATION, null, null);
+    }
+
 }

@@ -86,7 +86,10 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         //sync to remote database listener
         syncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sync.postData();
+                //sync.postData();
+                dataProvider.deleteVehicleLocations();
+                sync.deleteAllLocations();
+                listAdapter.clear();
             }
         });
     }
