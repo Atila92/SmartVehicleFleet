@@ -83,7 +83,6 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         beaconManager = new BeaconManager(getApplicationContext());
         dataProvider = new DataProvider(this);
         sync = new SyncService(getApplicationContext(),ScanActivity.this);
-        date = new Date();
 
         //Checks for location permissions
         if(!runtimePermissions()){
@@ -186,6 +185,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_scan) {
             Intent intent = new Intent(ScanActivity.this, MainActivity.class);
             startActivity(intent);
+        } else if (id == R.id.nav_overview) {
+            Intent intent = new Intent(ScanActivity.this, MapsActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_scan_all) {
 
         }
@@ -216,6 +218,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                     progress.setMessage("Searching for vehicle ");
                     for (EstimoteLocation beacon : beacons) {
                         if (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
+                            date = new Date();
                             progress.dismiss();
                             Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
                             cursor.moveToFirst();
@@ -252,6 +255,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                     progress.setMessage("Searching for vehicle ");
                     for (EstimoteLocation beacon : beacons) {
                         if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR)) {
+                            date = new Date();
                             progress.dismiss();
                             Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
                             cursor.moveToFirst();
@@ -288,6 +292,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                     progress.setMessage("Searching for vehicle ");
                     for (EstimoteLocation beacon : beacons) {
                         if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR)) {
+                            date = new Date();
                             progress.dismiss();
                             Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
                             cursor.moveToFirst();
@@ -322,6 +327,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                 }else if(radius==3) {
                     for (EstimoteLocation beacon : beacons) {
                         if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR ||RegionUtils.computeProximity(beacon) == Proximity.UNKNOWN)) {
+                            date = new Date();
                             progress.dismiss();
                             //listView.setAdapter(arrayAdapter);
                             Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
