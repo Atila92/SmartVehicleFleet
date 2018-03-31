@@ -9,31 +9,31 @@
     tools:showIn="@layout/app_bar_scan">
 
     <RelativeLayout
-        android:layout_width="344dp"
-        android:layout_height="495dp"
+        android:layout_width="match_parent"
+        android:layout_height="587dp"
         tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="16dp">
+        tools:layout_editor_absoluteY="8dp">
 
         <Button
             android:id="@+id/searchAllButton"
-            android:layout_width="300dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/listView"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="51dp"
             android:background="@color/colorPrimaryDark"
             android:elevation="10dp"
             android:text="Scan"
             android:textColor="#ffff"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_below="@+id/listView"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="51dp" />
+            android:textStyle="bold" />
 
         <ListView
             android:id="@+id/listView"
             android:layout_width="match_parent"
             android:layout_height="300dp"
-            android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
             android:layout_marginTop="42dp" />
 
         <TextView

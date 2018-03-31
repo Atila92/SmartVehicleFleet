@@ -8,6 +8,9 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.atila.smartvehiclefleet.dbhelper.DataProvider;
@@ -31,6 +34,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -46,7 +50,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LatLng spaceBCsoutheast;
     private LatLng spaceAsoutheast;
     private LatLng spaceDsoutheast;
-    int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+    private EditText editTextSearchMap;
+    private HashMap<String,LatLng> vehicleLocations = new HashMap<>();
+    private HashMap<String,Marker> vehicleMarkers = new HashMap<>();
+    private Boolean infoShown = false;
+    private String infoShownMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        editTextSearchMap = (EditText) findViewById(R.id.editTextSearchMap);
         //sets the south west and north east corners of the image
         spaceBCsoutheast = new LatLng(55.7254616764489,12.380295853045254);
         spaceAsoutheast = new LatLng(55.72530603133699, 12.381780019049074);
@@ -63,16 +72,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         dataProvider = new DataProvider(this);
         Cursor cursor = dataProvider.selectAllLocations();
 
-        if (cursor != null){
+        if (cursor.getCount()>0){
             while (!cursor.isAfterLast()) {
-                tempId = cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER))+" ("+cursor.getFloat(cursor.getColumnIndex(DbHelper.ACCURACY))+")";
+                tempId = cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER)).toUpperCase();
                 vehicleIds.add(tempId);
                 loc = new LatLng(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LATITUDE))),Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LONGITUDE))));
                 points.add(loc);
                 accuracy.add(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.ACCURACY))));
+                vehicleLocations.put(tempId,loc);
                 cursor.moveToNext();
             }
         }
+
+        //Listener for search bar enter click
+        editTextSearchMap.setOnKeyListener(new View.OnKeyListener() {
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // If the event is a key-down event on the "enter" button
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    if(vehicleIds.contains(editTextSearchMap.getText().toString().toUpperCase())){
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(vehicleLocations.get(editTextSearchMap.getText().toString().toUpperCase()))
+                                .zoom(19)
+                                .build();
+                        CameraUpdate update = CameraUpdateFactory.newCameraPosition(cameraPosition);
+                        mMap.animateCamera(update);
+                        infoShownMarker = editTextSearchMap.getText().toString().toUpperCase();
+                        vehicleMarkers.get(infoShownMarker).showInfoWindow();
+                        infoShown = true;
+                    }else{
+                        if (infoShown) {
+                            defaultCameraPosition();
+                            vehicleMarkers.get(infoShownMarker).hideInfoWindow();
+                            infoShown = false;
+                        }
+                        Toast.makeText(MapsActivity.this,"Vehicle not found!",Toast.LENGTH_LONG).show();
+                    }
+
+                }
+                return false;
+            }
+        });
 
     }
 
@@ -94,27 +134,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Add a marker in location and accuracy cirkle
         for (int i = 0 ; i < points.size(); i++){
             mMap.addMarker(new MarkerOptions().position(points.get(i)).title(vehicleIds.get(i)).icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("marker",48,48))).zIndex(2));
+            vehicleMarkers.put(vehicleIds.get(i), mMap.addMarker(new MarkerOptions().position(points.get(i)).title(vehicleIds.get(i)).icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("marker",48,48))).zIndex(2)));
             mMap.addCircle(new CircleOptions().center(points.get(i)).radius(accuracy.get(i)).zIndex(2).strokeColor(Color.RED).strokeWidth(1).fillColor(0x22FE2E2E));
         };
 
+        defaultCameraPosition();
+    }
+
+    public Bitmap resizeBitmap(String drawableName, int width, int height){
+        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),getResources().getIdentifier(drawableName, "drawable", getPackageName()));
+        return Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+    }
+
+    public void defaultCameraPosition(){
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(points.get(0))
                 .zoom(17)
                 .build();
         CameraUpdate update = CameraUpdateFactory.newCameraPosition(cameraPosition);
         mMap.animateCamera(update);
-        //listener for map clicks
-        /*
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-            }
-        });*/
-    }
-
-    public Bitmap resizeBitmap(String drawableName, int width, int height){
-        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),getResources().getIdentifier(drawableName, "drawable", getPackageName()));
-        return Bitmap.createScaledBitmap(imageBitmap, width, height, false);
     }
 
 
