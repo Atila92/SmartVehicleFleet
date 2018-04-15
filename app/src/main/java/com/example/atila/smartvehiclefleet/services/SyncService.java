@@ -25,8 +25,11 @@ import cz.msebera.android.httpclient.Header;
 public class SyncService {
 
     private static final String POSTLOCATIONSURL = "http://fleetscanner.store/fleetscanner/insertlocation.php";
+    private static final String POSTLOCATIONSLOGURL = "http://fleetscanner.store/fleetscanner/insertlocationlog.php";
     private static final String DELETELOCATIONSURL = "http://fleetscanner.store/fleetscanner/deletelocation.php";
+    private static final String DELETELOCATIONSLOGURL = "http://fleetscanner.store/fleetscanner/deletelocationlog.php";
     private static final String DELETEALLLOCATIONSURL = "http://fleetscanner.store/fleetscanner/deletealllocations.php";
+    private static final String DELETEALLLOCATIONSLOGURL = "http://fleetscanner.store/fleetscanner/deletealllocationslog.php";
     private DataProvider dataProvider;
     private Context context;
     private Context activityContext;
@@ -158,6 +161,127 @@ public class SyncService {
         progress.show();
         AsyncHttpClient client = new AsyncHttpClient();
         client.get(DELETEALLLOCATIONSURL,new AsyncHttpResponseHandler(){
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                progress.dismiss();
+                Toast.makeText(context,"Vehicle locations deleted",Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(context, "Failed", Toast.LENGTH_LONG).show();
+
+            }
+        });
+    }
+
+    //For locationlog experiments
+    public String composeJSONfromSQLiteLog(){
+        ArrayList<HashMap<String, String>> locationList;
+        locationList = new ArrayList<HashMap<String, String>>();
+        Cursor cursor2 = dataProvider.selectAllLocationsLogs();
+        if (cursor2.getCount() >0){
+            while (!cursor2.isAfterLast()) {
+                HashMap<String, String> map = new HashMap<String, String>();
+                map.put("Locationid", cursor2.getString(cursor2.getColumnIndex(DbHelper.LOCATION_ID_LOG)));
+                map.put("Refvehicleidentifier", cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)));
+                map.put("Latitude", cursor2.getString(cursor2.getColumnIndex(DbHelper.LATITUDE_LOG)));
+                map.put("Longitude", cursor2.getString(cursor2.getColumnIndex(DbHelper.LONGITUDE_LOG)));
+                map.put("Accuracy", cursor2.getString(cursor2.getColumnIndex(DbHelper.ACCURACY_LOG)));
+                map.put("Timestamp", cursor2.getString(cursor2.getColumnIndex(DbHelper.TIMESTAMP_LOG)));
+                locationList.add(map);
+                cursor2.moveToNext();
+            }
+            cursor2.close();
+        }else{
+            Toast.makeText(context,"cursor is null",Toast.LENGTH_LONG).show();
+        }
+
+        Gson gson = new GsonBuilder().create();
+        //Use GSON to serialize Array List to JSON
+        return gson.toJson(locationList);
+    }
+
+    public void postDataLog(){
+        final ProgressDialog progress = new ProgressDialog(activityContext);
+        progress.setTitle("Synchronizing log");
+        progress.setMessage("Wait while synchronizing to remote db..");
+        progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
+        progress.show();
+        AsyncHttpClient client = new AsyncHttpClient();
+        RequestParams params = new RequestParams();
+        dataProvider = new DataProvider(context);
+        Cursor cursor3 = dataProvider.selectAllLocationsLogs();
+        if (cursor3.getCount() >0){
+            params.put("locationslogJSON", composeJSONfromSQLiteLog());
+            client.post(POSTLOCATIONSLOGURL,params ,new AsyncHttpResponseHandler() {
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    progress.dismiss();
+                    Toast.makeText(context,"Sync completed",Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    progress.dismiss();
+                    if(statusCode == 404){
+                        Toast.makeText(context, "Requested resource not found", Toast.LENGTH_LONG).show();
+                    }else if(statusCode == 500){
+                        Toast.makeText(context, "Something went wrong at server end", Toast.LENGTH_LONG).show();
+                    }else{
+                        Toast.makeText(context, "Unexpected Error occcured! [Most common Error: Device might not be connected to Internet]", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            cursor3.close();
+        }
+
+
+    }
+
+    public void deleteDataLog(final String vehicleId){
+        final ProgressDialog progress = new ProgressDialog(activityContext);
+        progress.setTitle("Deleting location");
+        progress.setMessage("Wait while resetting vehicle location data..");
+        progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
+        progress.show();
+        AsyncHttpClient client = new AsyncHttpClient();
+        RequestParams params = new RequestParams();
+        params.put("deleteJSON", composeDeleteJSONfromSQLite(vehicleId));
+        client.post(DELETELOCATIONSLOGURL,params ,new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                progress.dismiss();
+                Toast.makeText(context,"Vehicle "+vehicleId+" deleted!",Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                progress.dismiss();
+                if(statusCode == 404){
+                    Toast.makeText(context, "Requested resource not found", Toast.LENGTH_LONG).show();
+                }else if(statusCode == 500){
+                    Toast.makeText(context, "Something went wrong at server end", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(context, "Unexpected Error occcured! [Most common Error: Device might not be connected to Internet]", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+    }
+
+    //delete all vehicle locations
+    public void deleteAllLocationsLog(){
+        final ProgressDialog progress = new ProgressDialog(activityContext);
+        progress.setTitle("Deleting locations");
+        progress.setMessage("Wait while resetting vehicle location data..");
+        progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
+        progress.show();
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get(DELETEALLLOCATIONSLOGURL,new AsyncHttpResponseHandler(){
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {

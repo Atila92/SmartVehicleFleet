@@ -10,7 +10,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.HashMap;
@@ -19,6 +21,7 @@ public class SettingsActivity extends AppCompatActivity implements NavigationVie
 
     private SeekBar seekBar;
     private TextView seekBarHeader;
+    private Switch switch1;
     public static final String MY_PREFS_NAME = "settingsFile";
     public static HashMap<Integer,String> settingsValues = new HashMap<>();
 
@@ -30,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity implements NavigationVie
         setSupportActionBar(toolbar);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBarHeader = (TextView) findViewById(R.id.seekBarHeader);
+        switch1 = (Switch) findViewById(R.id.switch1);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -83,6 +87,21 @@ public class SettingsActivity extends AppCompatActivity implements NavigationVie
 
             }
         });
+
+        switch1.setText("Save to log");
+        switch1.setChecked(prefs.getBoolean("switch",false));
+        switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    editor.putBoolean("switch",true);
+                    editor.apply();
+                }else{
+                    editor.putBoolean("switch",false);
+                    editor.apply();
+                }
+            }
+        });
+
 
         }
 

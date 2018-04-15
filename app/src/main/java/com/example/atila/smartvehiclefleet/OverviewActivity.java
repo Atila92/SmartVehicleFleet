@@ -1,6 +1,7 @@
 package com.example.atila.smartvehiclefleet;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -53,6 +54,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
 
         listView = (ListView) findViewById(R.id.listView2);
         syncButton = (Button) findViewById(R.id.syncButton);
+        final SharedPreferences prefs = getSharedPreferences(SettingsActivity.MY_PREFS_NAME, MODE_PRIVATE);
         dataProvider = new DataProvider(this);
         String[] allVehicleLocations = new String[]{};
         vehicleLocationsList = new ArrayList<String>();
@@ -60,7 +62,12 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         listAdapter = new ArrayAdapter<String>
                 (this, android.R.layout.simple_list_item_1, vehicleLocationsList);
         listView.setAdapter( listAdapter );
-        Cursor cursor = dataProvider.selectAllLocations();
+        Cursor cursor;
+        if(prefs.getBoolean("switch",false)){
+            cursor = dataProvider.selectAllLocationsLogs();
+        }else{
+            cursor = dataProvider.selectAllLocations();
+        }
         if (cursor.getCount() >0){
             while (!cursor.isAfterLast()) {
                 listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER)));
@@ -86,10 +93,16 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         //sync to remote database listener
         syncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                //sync.postData();
-                dataProvider.deleteVehicleLocations();
-                sync.deleteAllLocations();
-                listAdapter.clear();
+                if(prefs.getBoolean("switch",false)){
+                    dataProvider.deleteVehicleLocationsLogs();
+                    sync.deleteAllLocationsLog();
+                    listAdapter.clear();
+                }else{
+                    dataProvider.deleteVehicleLocations();
+                    sync.deleteAllLocations();
+                    listAdapter.clear();
+                }
+
             }
         });
     }

@@ -24,6 +24,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
 import com.estimote.coresdk.observation.region.RegionUtils;
 import com.estimote.coresdk.observation.utils.Proximity;
@@ -113,17 +115,30 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                 if(!scanning){
                     Intent i = new Intent(getApplicationContext(),LocationService.class);
                     startService(i);
-                    findVehicles();
+                    if(prefs.getBoolean("switch",false)){
+                        findVehiclesLog();
+                    }else{
+                        findVehicles();
+                    }
                     scanning = true;
                     searchAllButton.setText("Stop Scan");
                 }else{
                     beaconManager.disconnect();
                     Intent i = new Intent(getApplicationContext(),LocationService.class);
                     stopService(i);
-                    Cursor cursor2 = dataProvider.selectAllLocations();
-                    if (cursor2.getCount() >0){
-                        sync.postData();
+
+                    if(prefs.getBoolean("switch",false)){
+                        Cursor cursor2 = dataProvider.selectAllLocationsLogs();
+                        if (cursor2.getCount() >0){
+                            sync.postDataLog();
+                        }
+                    }else{
+                        Cursor cursor2 = dataProvider.selectAllLocations();
+                        if (cursor2.getCount() >0){
+                            sync.postData();
+                        }
                     }
+
                     scanning = false;
                     searchAllButton.setText("Scan");
                 }
@@ -303,6 +318,160 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                                     }else{
                                         dataProvider.updateLocation(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy,new Timestamp(date.getTime()).toString());
                                     }
+                                    listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+
+                        }else{
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                if(vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    listAdapter.remove(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+                        }
+
+                    }
+                }else if(radius==3) {
+                    for (EstimoteLocation beacon : beacons) {
+                        if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR ||RegionUtils.computeProximity(beacon) == Proximity.UNKNOWN)) {
+                            date = new Date();
+                            progress.dismiss();
+                            //listView.setAdapter(arrayAdapter);
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+
+                        }else{
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                if(vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    listAdapter.remove(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+                        }
+
+                    }
+                }
+
+            }
+        });
+
+    }
+    //this piece of code is for the log experiment
+    public void findVehiclesLog(){
+        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+            @Override public void onServiceReady() {
+                beaconManager.startLocationDiscovery();
+            }
+        });
+        //Loading bar
+        final ProgressDialog progress = new ProgressDialog(this);
+        final SharedPreferences prefs = getSharedPreferences(SettingsActivity.MY_PREFS_NAME, MODE_PRIVATE);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while starting the scanner..");
+        progress.setCancelable(true); // disable dismiss by tapping outside of the dialog
+        progress.show();
+        beaconManager.setLocationListener(new BeaconManager.LocationListener() {
+            @Override
+            public void onLocationsFound(List<EstimoteLocation> beacons) {
+                Integer radius = prefs.getInt("radius",0);
+                System.out.println("Heeeeeer: "+prefs.getInt("radius",0)+":");
+                if(radius==0 && latitude != null) {
+                    progress.setTitle("Searching");
+                    progress.setMessage("Searching for vehicle ");
+                    for (EstimoteLocation beacon : beacons) {
+                        if (RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
+                            date = new Date();
+                            progress.dismiss();
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                dataProvider.insertLocationLog(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy, new Timestamp(date.getTime()).toString());
+                                if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+
+                        }else{
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                if(vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    listAdapter.remove(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }else if(radius==1 && latitude != null) {
+                    progress.setTitle("Searching");
+                    progress.setMessage("Searching for vehicle ");
+                    for (EstimoteLocation beacon : beacons) {
+                        if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR)) {
+                            date = new Date();
+                            progress.dismiss();
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                dataProvider.insertLocationLog(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy,new Timestamp(date.getTime()).toString());
+                                if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+
+                        }else{
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                if(vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
+                                    listAdapter.remove(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
+                                }
+                                cursor.moveToNext();
+                            }
+                            cursor.close();
+                            listAdapter.notifyDataSetChanged();
+                        }
+
+                    }
+                }else if(radius==2 && latitude != null) {
+                    progress.setTitle("Searching");
+                    progress.setMessage("Searching for vehicle ");
+                    for (EstimoteLocation beacon : beacons) {
+                        if ((RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE ||RegionUtils.computeProximity(beacon) == Proximity.NEAR ||RegionUtils.computeProximity(beacon) == Proximity.FAR)) {
+                            date = new Date();
+                            progress.dismiss();
+                            Cursor cursor = dataProvider.selectVehicleIdentifier(beacon.id.toString());
+                            cursor.moveToFirst();
+                            while (!cursor.isAfterLast()) {
+                                dataProvider.insertLocationLog(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)),latitude.toString(),longitude.toString(),accuracy,new Timestamp(date.getTime()).toString());
+                                if(!vehiclesNearbyList.contains(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)))){
                                     listAdapter.add(cursor.getString(cursor.getColumnIndex(DbHelper.VEHICLE_IDENTIFIER)));
                                 }
                                 cursor.moveToNext();
