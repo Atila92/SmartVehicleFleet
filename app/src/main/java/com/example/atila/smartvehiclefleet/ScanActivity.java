@@ -35,10 +35,13 @@ import com.example.atila.smartvehiclefleet.dbhelper.DataProvider;
 import com.example.atila.smartvehiclefleet.dbhelper.DbHelper;
 import com.example.atila.smartvehiclefleet.services.LocationService;
 import com.example.atila.smartvehiclefleet.services.SyncService;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -128,8 +131,20 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                     stopService(i);
 
                     if(prefs.getBoolean("switch",false)){
-                        Cursor cursor2 = dataProvider.selectAllLocationsLogs();
+                        Cursor cursor2 = dataProvider.selectAllLocationsLogsGrouped();
                         if (cursor2.getCount() >0){
+                            while (!cursor2.isAfterLast()) {
+                                LatLng estimatedLocation= estimatedLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)));
+                                date = new Date();
+                                if (!dataProvider.selectLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG))).moveToFirst()){
+                                    dataProvider.insertLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)),String.valueOf(estimatedLocation.latitude),String.valueOf(estimatedLocation.longitude),3.2f, new Timestamp(date.getTime()).toString());
+                                }else{
+                                    dataProvider.updateLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)),String.valueOf(estimatedLocation.latitude),String.valueOf(estimatedLocation.longitude),3.2f, new Timestamp(date.getTime()).toString());
+                                }
+                                cursor2.moveToNext();
+                            }
+                            cursor2.close();
+                            sync.postData();
                             sync.postDataLog();
                         }
                     }else{
@@ -394,7 +409,6 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onLocationsFound(List<EstimoteLocation> beacons) {
                 Integer radius = prefs.getInt("radius",0);
-                System.out.println("Heeeeeer: "+prefs.getInt("radius",0)+":");
                 if(radius==0 && latitude != null) {
                     progress.setTitle("Searching");
                     progress.setMessage("Searching for vehicle ");
@@ -537,5 +551,77 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
             return true;
         }
         return false;
+    }
+    //Location estimation using median
+    public LatLng estimatedLocation(String vehicle){
+        ArrayList<Double> lat = new ArrayList<Double>();
+        ArrayList<Double> lon = new ArrayList<Double>();
+        Cursor latestlocations = dataProvider.selectLatestLocationLog(vehicle);
+        while (!latestlocations.isAfterLast()) {
+            lat.add(Double.parseDouble(latestlocations.getString(latestlocations.getColumnIndex(DbHelper.LATITUDE_LOG))));
+            lon.add(Double.parseDouble(latestlocations.getString(latestlocations.getColumnIndex(DbHelper.LONGITUDE_LOG))));
+            latestlocations.moveToNext();
+        }
+        latestlocations.close();
+        Collections.sort(lat);
+        Collections.sort(lon);
+        Double medianLat = median(lat);
+        Double medianLon = median(lon);
+
+        return new LatLng(medianLat,medianLon);
+    }
+    //Accuracy calculation using sd
+    public Float estimatedaccuracy(String vehicle){
+        ArrayList<Double> lat = new ArrayList<Double>();
+        ArrayList<Double> lon = new ArrayList<Double>();
+        Cursor latestlocations = dataProvider.selectLatestLocationLog(vehicle);
+        while (!latestlocations.isAfterLast()) {
+            lat.add(Double.parseDouble(latestlocations.getString(latestlocations.getColumnIndex(DbHelper.LATITUDE_LOG))));
+            lon.add(Double.parseDouble(latestlocations.getString(latestlocations.getColumnIndex(DbHelper.LONGITUDE_LOG))));
+            latestlocations.moveToNext();
+        }
+        latestlocations.close();
+        Double sdLat = standardDeviation(lat);
+        Double sdLon = standardDeviation(lon);
+
+        return sdLat.floatValue();
+    }
+
+    public Double median(List<Double> a){
+        int middle = a.size()/2;
+
+        if (a.size() % 2 == 1) {
+            return a.get(middle);
+        } else {
+            return (a.get(middle-1) + a.get(middle)) / 2.0;
+        }
+    }
+
+    public Double sum (List<Double> a){
+        if (a.size() > 0) {
+            Double sum = 0.0;
+
+            for (Double i : a) {
+                sum += i;
+            }
+            return sum;
+        }
+        return 0.0;
+    }
+
+    public double mean (List<Double> a){
+        Double sum = sum(a);
+        Double mean = 0.0;
+        mean = sum / (a.size() * 1.0);
+        return mean;
+    }
+
+    public Double standardDeviation (List<Double> a){
+        Double sum = 0.0;
+        Double mean = mean(a);
+
+        for (Double i : a)
+            sum += Math.pow((i - mean), 2);
+        return Math.sqrt( sum / ( a.size() - 1 ) );
     }
 }

@@ -138,10 +138,21 @@ public class DataProvider {
         values.put(DbHelper.TIMESTAMP_LOG, timestamp);
         return database.update(DbHelper.TABLE_LOCATIONLOG,values,DbHelper.REF_VEHICLE_IDENTIFIER_LOG+"='"+vehicleId+"'",null);
     }
-    //selects vehicle location
+    //selects vehicle location.
     public Cursor selectLocationLog(String vehicleId){
         String[] cols = new String[] {DbHelper.LATITUDE_LOG,DbHelper.LONGITUDE_LOG,DbHelper.ACCURACY_LOG, DbHelper.TIMESTAMP_LOG};
         Cursor cursor = database.query(true, DbHelper.TABLE_LOCATIONLOG, cols, DbHelper.REF_VEHICLE_IDENTIFIER_LOG +"='"+vehicleId+"'", null, null, null, null, null);
+        if (cursor != null){
+            cursor.moveToFirst();
+        }
+        return cursor;
+    }
+
+    //select 3 latest vehicle locations
+    public Cursor selectLatestLocationLog(String vehicleId){
+        String[] cols = new String[] {DbHelper.LOCATION_ID_LOG,
+                DbHelper.REF_VEHICLE_IDENTIFIER_LOG,DbHelper.LATITUDE_LOG,DbHelper.LONGITUDE_LOG,DbHelper.ACCURACY_LOG, DbHelper.TIMESTAMP_LOG};
+        Cursor cursor = database.query(true, DbHelper.TABLE_LOCATIONLOG, cols, DbHelper.REF_VEHICLE_IDENTIFIER_LOG +"='"+vehicleId+"'", null, null, null, DbHelper.LOCATION_ID_LOG +" DESC", "3");
         if (cursor != null){
             cursor.moveToFirst();
         }
@@ -153,6 +164,16 @@ public class DataProvider {
         String[] cols = new String[] {DbHelper.LOCATION_ID_LOG,
                 DbHelper.REF_VEHICLE_IDENTIFIER_LOG,DbHelper.LATITUDE_LOG,DbHelper.LONGITUDE_LOG,DbHelper.ACCURACY_LOG, DbHelper.TIMESTAMP_LOG};
         Cursor cursor = database.query(true, DbHelper.TABLE_LOCATIONLOG, cols, null, null, null, null, null, null);
+        if (cursor != null){
+            cursor.moveToFirst();
+        }
+        return cursor;
+    }
+
+    //selects vehicle location
+    public Cursor selectAllLocationsLogsGrouped(){
+        String[] cols = new String[] {DbHelper.REF_VEHICLE_IDENTIFIER_LOG};
+        Cursor cursor = database.query(true, DbHelper.TABLE_LOCATIONLOG, cols, null, null, DbHelper.REF_VEHICLE_IDENTIFIER_LOG, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();
         }
