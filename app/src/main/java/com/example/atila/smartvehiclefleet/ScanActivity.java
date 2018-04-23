@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Location;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -137,9 +138,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                                 LatLng estimatedLocation= estimatedLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)));
                                 date = new Date();
                                 if (!dataProvider.selectLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG))).moveToFirst()){
-                                    dataProvider.insertLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)),String.valueOf(estimatedLocation.latitude),String.valueOf(estimatedLocation.longitude),3.2f, new Timestamp(date.getTime()).toString());
+                                    dataProvider.insertLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)),String.valueOf(estimatedLocation.latitude),String.valueOf(estimatedLocation.longitude),estimatedaccuracy(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG))), new Timestamp(date.getTime()).toString());
                                 }else{
-                                    dataProvider.updateLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)),String.valueOf(estimatedLocation.latitude),String.valueOf(estimatedLocation.longitude),3.2f, new Timestamp(date.getTime()).toString());
+                                    dataProvider.updateLocation(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG)),String.valueOf(estimatedLocation.latitude),String.valueOf(estimatedLocation.longitude),estimatedaccuracy(cursor2.getString(cursor2.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER_LOG))), new Timestamp(date.getTime()).toString());
                                 }
                                 cursor2.moveToNext();
                             }
@@ -583,8 +584,16 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         latestlocations.close();
         Double sdLat = standardDeviation(lat);
         Double sdLon = standardDeviation(lon);
+        LatLng estimatedLoc = estimatedLocation(vehicle);
+        Location loc1 = new Location("");
+        loc1.setLatitude(estimatedLoc.latitude);
+        loc1.setLongitude(estimatedLoc.longitude);
 
-        return sdLat.floatValue();
+        Location loc2 = new Location("");
+        loc2.setLatitude(estimatedLoc.latitude+sdLat);
+        loc2.setLongitude(estimatedLoc.longitude+sdLon);
+
+        return loc1.distanceTo(loc2);
     }
 
     public Double median(List<Double> a){
