@@ -8,6 +8,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Typeface;
+import android.graphics.drawable.AnimationDrawable;
 import android.location.Location;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -23,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,6 +69,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
     private Boolean scanning= false;
     private SyncService sync;
     private Date date;
+    private ImageView imageView2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +90,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         searchAllButton = (Button) findViewById(R.id.searchAllButton);
         listView = (ListView) findViewById(R.id.listView);
         scanHeader = (TextView) findViewById(R.id.scanHeader);
+        imageView2 = (ImageView) findViewById(R.id.imageView2);
         beaconManager = new BeaconManager(getApplicationContext());
         dataProvider = new DataProvider(this);
         sync = new SyncService(getApplicationContext(),ScanActivity.this);
@@ -101,6 +106,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         listAdapter = new ArrayAdapter<String>
                 (this, android.R.layout.simple_list_item_1, vehiclesNearbyList);
         listView.setAdapter( listAdapter );
+        listView.setVisibility(View.INVISIBLE);
+        //Starts the animation
+        imageView2.setImageResource(R.drawable.frame0);
         //populating the proximity values
         proximityValues.put(0,Proximity.IMMEDIATE);
         proximityValues.put(1,Proximity.NEAR);
@@ -111,7 +119,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         settingsValues.put(2,"More than a few meters");
         settingsValues.put(3,"Unknown");
         final SharedPreferences prefs = getSharedPreferences(SettingsActivity.MY_PREFS_NAME, MODE_PRIVATE);
-        scanHeader.setText(settingsValues.get(prefs.getInt("radius",0)));
+        scanHeader.setText("Position yourself at the start of a row and click Scan");
         //listener for search all button
         searchAllButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -119,6 +127,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                 if(!scanning){
                     Intent i = new Intent(getApplicationContext(),LocationService.class);
                     startService(i);
+                    imageView2.setImageResource(R.drawable.animation);
+                    ((AnimationDrawable) imageView2.getDrawable()).start();
+                    listView.setVisibility(View.VISIBLE);
                     if(prefs.getBoolean("switch",false)){
                         findVehiclesLog();
                     }else{
@@ -126,10 +137,17 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
                     }
                     scanning = true;
                     searchAllButton.setText("Stop Scan");
+                    scanHeader.setText(settingsValues.get(prefs.getInt("radius",0)));
+                    scanHeader.setTypeface(null, Typeface.BOLD);
                 }else{
                     beaconManager.disconnect();
                     Intent i = new Intent(getApplicationContext(),LocationService.class);
                     stopService(i);
+                    scanHeader.setText("Position yourself at the start of a row and click Scan");
+                    scanHeader.setTypeface(null, Typeface.NORMAL);
+                    listView.setVisibility(View.INVISIBLE);
+                    ((AnimationDrawable) imageView2.getDrawable()).stop();
+                    imageView2.setImageResource(R.drawable.frame0);
 
                     if(prefs.getBoolean("switch",false)){
                         Cursor cursor2 = dataProvider.selectAllLocationsLogsGrouped();

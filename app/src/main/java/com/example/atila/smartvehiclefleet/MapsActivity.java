@@ -114,7 +114,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         mMap.setMyLocationEnabled(true);
-        //Add overlay
+        //Adds overlay
         GroundOverlayOptions bilsalgMapSpaceA = new GroundOverlayOptions()
                 .image(BitmapDescriptorFactory.fromResource(R.drawable.space_a)).anchor(1,1).position(spaceAsoutheast,94.3f,88.86f).bearing(12f).transparency(0.1f).zIndex(1);
         GroundOverlayOptions bilsalgMapSpaceBC = new GroundOverlayOptions()
@@ -124,8 +124,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addGroundOverlay(bilsalgMapSpaceA);
         mMap.addGroundOverlay(bilsalgMapSpaceBC);
         mMap.addGroundOverlay(bilsalgMapSpaceD);
-        // Add a marker in location and accuracy cirkle
-
+        //Call default overview mode
         defaultCameraPosition();
     }
 
@@ -135,7 +134,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void defaultCameraPosition(){
-
+        //Restores the full map overview of all vehicles
         for (int i = 0 ; i < points.size(); i++){
             if(!vehicleMarkers.containsKey(vehicleIds.get(i))){
                 Marker marker = mMap.addMarker(new MarkerOptions().position(points.get(i)).title(vehicleIds.get(i)).icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("marker",48,48))).zIndex(2));
@@ -144,7 +143,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 vehicleCirkles.put(vehicleIds.get(i),cirkle);
             }
         };
-
+        //Zooms out to create overview
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(points.get(0))
                 .zoom(17)
@@ -154,7 +153,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void zoomVehicleInFocus(String vehicle){
-
+        //For removing vehicles not in focus
         Iterator it = vehicleMarkers.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String,Marker> pair = (Map.Entry)it.next();
@@ -165,7 +164,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         }
-
+        //For removing radius cirkles not in focus
         Iterator it2 = vehicleCirkles.entrySet().iterator();
         while (it2.hasNext()) {
             Map.Entry<String,Circle> pair = (Map.Entry)it2.next();
@@ -176,7 +175,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         }
-
+        //Zooms the focused vehicle
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(vehicleLocations.get(vehicle))
                 .zoom(19)
