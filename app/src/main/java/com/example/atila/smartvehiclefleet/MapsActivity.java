@@ -42,8 +42,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DataProvider dataProvider;
     private LatLng loc;
     private String tempId;
+    private String tempId2;
     private List<LatLng> points = new ArrayList<LatLng>();
     private List<String> vehicleIds = new ArrayList<String>();
+    private List<String> vehicleTimestamp = new ArrayList<String>();
     private List<Double> accuracy = new ArrayList<Double>();
     private LatLng spaceBCsoutheast;
     private LatLng spaceAsoutheast;
@@ -74,7 +76,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (cursor.getCount()>0){
             while (!cursor.isAfterLast()) {
                 tempId = cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER)).toUpperCase();
+                tempId2 = cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER)).toUpperCase()+" | "+cursor.getString(cursor.getColumnIndex(DbHelper.TIMESTAMP)).substring(0,cursor.getString(cursor.getColumnIndex(DbHelper.TIMESTAMP)).length()-13);
                 vehicleIds.add(tempId);
+                vehicleTimestamp.add(tempId2);
                 loc = new LatLng(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LATITUDE))),Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LONGITUDE))));
                 points.add(loc);
                 accuracy.add(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.ACCURACY))));
@@ -137,7 +141,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Restores the full map overview of all vehicles
         for (int i = 0 ; i < points.size(); i++){
             if(!vehicleMarkers.containsKey(vehicleIds.get(i))){
-                Marker marker = mMap.addMarker(new MarkerOptions().position(points.get(i)).title(vehicleIds.get(i)).icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("marker",48,48))).zIndex(2));
+                Marker marker = mMap.addMarker(new MarkerOptions().position(points.get(i)).title(vehicleTimestamp.get(i)).icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("marker",48,48))).zIndex(2));
                 vehicleMarkers.put(vehicleIds.get(i), marker);
                 Circle cirkle = mMap.addCircle(new CircleOptions().center(points.get(i)).radius(accuracy.get(i)).zIndex(2).strokeColor(Color.RED).strokeWidth(1).fillColor(0x22FE2E2E));
                 vehicleCirkles.put(vehicleIds.get(i),cirkle);

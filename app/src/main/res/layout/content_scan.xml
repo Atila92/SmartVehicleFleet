@@ -9,8 +9,8 @@
     tools:showIn="@layout/app_bar_scan">
 
     <RelativeLayout
-        android:layout_width="395dp"
-        android:layout_height="587dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         tools:layout_editor_absoluteX="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="9dp">
