@@ -9,15 +9,23 @@
         <item
             android:id="@+id/nav_overview"
             android:icon="@android:drawable/ic_dialog_map"
-            android:title="Overview" />
+            android:title="Find vehicle" />
         <item
-            android:id="@+id/nav_scan"
-            android:icon="?android:attr/actionModeWebSearchDrawable"
-            android:title="Search" />
+            android:id="@+id/empty1"
+            android:checkable="false"
+            android:title=" " />
         <item
-            android:id="@+id/nav_share"
-            android:icon="?android:attr/actionModeFindDrawable"
-            android:title="List" />
+            android:id="@+id/empty2"
+            android:checkable="false"
+            android:title=" " />
+        <item
+            android:id="@+id/empty3"
+            android:checkable="false"
+            android:title=" " />
+        <item
+            android:id="@+id/empty4"
+            android:checkable="false"
+            android:title=" " />
     </group>
 
     <item android:title="Preferences">
@@ -26,6 +34,15 @@
                 android:id="@+id/nav_manage"
                 android:icon="@android:drawable/ic_menu_preferences"
                 android:title="Settings" />
+            <item
+                android:id="@+id/nav_scan"
+                android:icon="@android:drawable/ic_menu_delete"
+                android:title="Delete vehicle"
+                android:visible="false"/>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@android:drawable/ic_menu_sort_by_size"
+                android:title="Data" />
         </menu>
     </item>
 
