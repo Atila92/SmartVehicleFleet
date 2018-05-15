@@ -34,7 +34,7 @@ public class DataProvider {
     }
     //Select all mappings from sqlite db
     public Cursor selectAllMappings(){
-        String[] cols = new String[] {DbHelper.VEHICLE_IDENTIFIER};
+        String[] cols = new String[] {DbHelper.VEHICLE_IDENTIFIER,DbHelper.BEACON_IDENTIFIER};
         Cursor cursor = database.query(true, DbHelper.TABLE_MAPPING, cols, null, null, null, null, null, null);
         if (cursor != null){
             cursor.moveToFirst();

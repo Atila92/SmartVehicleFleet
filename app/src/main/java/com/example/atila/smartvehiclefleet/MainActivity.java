@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
 import com.estimote.coresdk.service.BeaconManager;
 import com.example.atila.smartvehiclefleet.dbhelper.DataProvider;
+import com.example.atila.smartvehiclefleet.dbhelper.DbHelper;
 import com.example.atila.smartvehiclefleet.services.SyncService;
 
 public class MainActivity extends AppCompatActivity
@@ -89,6 +90,14 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        Cursor cursor = dataProvider.selectAllLocations();
+        if (cursor.getCount()>0){
+            while (!cursor.isAfterLast()) {
+                System.out.println("HEEEEER ---->"+cursor.getString(cursor.getColumnIndex(DbHelper.REF_VEHICLE_IDENTIFIER))+":"+cursor.getString(cursor.getColumnIndex(DbHelper.ACCURACY)));
+                cursor.moveToNext();
+            }
+
+        }
     }
 
     @Override

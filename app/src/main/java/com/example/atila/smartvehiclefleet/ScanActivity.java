@@ -593,25 +593,32 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
     public Float estimatedaccuracy(String vehicle){
         ArrayList<Double> lat = new ArrayList<Double>();
         ArrayList<Double> lon = new ArrayList<Double>();
+        Float dist = 0.1f;
         Cursor latestlocations = dataProvider.selectLatestLocationLog(vehicle);
         while (!latestlocations.isAfterLast()) {
             lat.add(Double.parseDouble(latestlocations.getString(latestlocations.getColumnIndex(DbHelper.LATITUDE_LOG))));
             lon.add(Double.parseDouble(latestlocations.getString(latestlocations.getColumnIndex(DbHelper.LONGITUDE_LOG))));
+            dist = Float.parseFloat(latestlocations.getString(latestlocations.getColumnIndex(DbHelper.ACCURACY_LOG)));
             latestlocations.moveToNext();
         }
+        //If the specific vehicle only has 1 location in the log it should return the single GPS location and not standard deviation
+        if(lat.size()>1){
+            Double sdLat = standardDeviation(lat);
+            Double sdLon = standardDeviation(lon);
+            LatLng estimatedLoc = estimatedLocation(vehicle);
+            Location loc1 = new Location("");
+            loc1.setLatitude(estimatedLoc.latitude);
+            loc1.setLongitude(estimatedLoc.longitude);
+
+            Location loc2 = new Location("");
+            loc2.setLatitude(estimatedLoc.latitude+sdLat);
+            loc2.setLongitude(estimatedLoc.longitude+sdLon);
+            dist =loc1.distanceTo(loc2);
+        }
         latestlocations.close();
-        Double sdLat = standardDeviation(lat);
-        Double sdLon = standardDeviation(lon);
-        LatLng estimatedLoc = estimatedLocation(vehicle);
-        Location loc1 = new Location("");
-        loc1.setLatitude(estimatedLoc.latitude);
-        loc1.setLongitude(estimatedLoc.longitude);
 
-        Location loc2 = new Location("");
-        loc2.setLatitude(estimatedLoc.latitude+sdLat);
-        loc2.setLongitude(estimatedLoc.longitude+sdLon);
 
-        return loc1.distanceTo(loc2);
+        return dist;
     }
 
     public Double median(List<Double> a){

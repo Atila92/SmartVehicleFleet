@@ -81,7 +81,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 vehicleTimestamp.add(tempId2);
                 loc = new LatLng(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LATITUDE))),Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.LONGITUDE))));
                 points.add(loc);
-                accuracy.add(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.ACCURACY))));
+                if(cursor.getString(cursor.getColumnIndex(DbHelper.ACCURACY)) != null){
+                    accuracy.add(Double.parseDouble(cursor.getString(cursor.getColumnIndex(DbHelper.ACCURACY))));
+                }else{
+
+                }
+
+
                 vehicleLocations.put(tempId,loc);
                 cursor.moveToNext();
             }
