@@ -11,9 +11,9 @@
             android:icon="@android:drawable/ic_dialog_map"
             android:title="Find vehicle" />
         <item
-            android:id="@+id/empty1"
-            android:checkable="false"
-            android:title=" " />
+            android:id="@+id/nav_beaconConfig"
+            android:icon="@drawable/config"
+            android:title="Setup beacon" />
         <item
             android:id="@+id/empty2"
             android:checkable="false"

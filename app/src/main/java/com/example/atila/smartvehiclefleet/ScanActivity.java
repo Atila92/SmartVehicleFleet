@@ -237,8 +237,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_overview) {
             Intent intent = new Intent(ScanActivity.this, MapsActivity.class);
             startActivity(intent);
-        } else if (id == R.id.nav_scan_all) {
-
+        } else if (id == R.id.nav_beaconConfig) {
+            Intent intent = new Intent(ScanActivity.this, ConfigGuideActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

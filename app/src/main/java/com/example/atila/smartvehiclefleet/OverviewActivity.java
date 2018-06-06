@@ -96,6 +96,8 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
                 if(prefs.getBoolean("switch",false)){
                     dataProvider.deleteVehicleLocationsLogs();
                     sync.deleteAllLocationsLog();
+                    dataProvider.deleteVehicleLocations();
+                    sync.deleteAllLocations();
                     listAdapter.clear();
                 }else{
                     dataProvider.deleteVehicleLocations();
